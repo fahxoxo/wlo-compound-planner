@@ -79,7 +79,8 @@ def apply_knowledge(db, path=KNOWLEDGE):
       way the calculator makes that result item
     - item_fixes: corrected item data (e.g. a missing base)
     - shop_fixes: shop items allowed above the shop-rank limit, location labels
-    - self_supplied: items with no shop / gathering source the player gets anyway
+    - self_supplied: items the player gets themselves (own inventory, drops, ...);
+      optional "source" text replaces "from your bag" in the guide
     """
     if not path.exists():
         return db
@@ -95,7 +96,8 @@ def apply_knowledge(db, path=KNOWLEDGE):
                 s["always_buy"] = fx.get("always_buy", False)
                 if fx.get("location_label"):
                     s["location"] = fx["location_label"]
-    db["self_supplied"] = {_resolve(items, x["item"]): x.get("note", "") for x in k.get("self_supplied", [])}
+    db["self_supplied"] = {_resolve(items, x["item"]): {"note": x.get("note", ""), "source": x.get("source", "")}
+                           for x in k.get("self_supplied", [])}
     for n, r in enumerate(k.get("recipes", []), 1):
         rid = _resolve(items, r["result"])
         mats = [{"id": i, "name": items[i]["name"]} for i in (_resolve(items, m) for m in r["materials"])]

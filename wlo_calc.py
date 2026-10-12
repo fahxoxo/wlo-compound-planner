@@ -83,13 +83,13 @@ def raw_sources(db, max_shop_rank=None, have=(), fallback=False, exclude=()):
     x2 for missing) is minimised first, so the route needs as few and as
     low-rank of them as possible. exclude: items never treated that way (the target).
     """
-    src = defaultdict(lambda: {"shops": [], "spots": [], "provided": False, "note": "",
+    src = defaultdict(lambda: {"shops": [], "spots": [], "provided": False, "note": "", "source": "",
                                "fallback": None, "weight": 0})
     for iid in have:
         src[iid]["provided"] = True
-    for iid, note in db.get("self_supplied", {}).items():  # from knowledge/shortcuts.json
+    for iid, x in db.get("self_supplied", {}).items():  # from knowledge/shortcuts.json
         src[iid]["provided"] = True
-        src[iid]["note"] = note
+        src[iid]["note"], src[iid]["source"] = x["note"], x["source"]
     for s in db["shops"]:
         if s["item_id"] and (max_shop_rank is None or (s["rank"] or 0) <= max_shop_rank
                              or s.get("always_buy")):
@@ -330,7 +330,9 @@ class GuideBuilder:
     def source(self, iid):
         s = self.raw[iid]
         if s["provided"]:
-            return {"kind": "provided", "text": "You provide", "note": s.get("note", "")}
+            source = s.get("source") or "from your bag"
+            return {"kind": "provided", "text": source[0].upper() + source[1:],
+                    "source": source, "note": s.get("note", "")}
         if s.get("fallback") == "missing":
             return {"kind": "missing", "text": "Get elsewhere (drop, quest or trade)"}
         if s.get("fallback") == "over_limit":
@@ -515,7 +517,7 @@ class GuideBuilder:
                     assert self.raw[iid]["anytime"] or depth[node] <= K, \
                         f"shop item {iid} used in stage {depth[node]}"
                     where = s.get("location", "")
-                    text = {"gather": f"gathered at {where}", "provided": "from your bag"}.get(
+                    text = {"gather": f"gathered at {where}", "provided": s.get("source")}.get(
                         s["kind"], f"bought at {where}")
                     frm = {"kind": s["kind"], "step": None, "text": text}
                 slots.append({"slot": s_no, "role": "Primary" if s_no == 1 else f"Sub {s_no - 1}",
@@ -551,7 +553,7 @@ class GuideBuilder:
         gold = 0
         for iid, qty in sorted(raws.items(), key=lambda kv: (self.items[kv[0]]["rank"] or 0, kv[0])):
             src = self.source(iid)
-            key = (src["kind"], src.get("location", ""))
+            key = (src["kind"], src.get("location", src.get("source", "")))
             if key not in groups:
                 place = src.get("location", "")
                 if src["kind"] == "gather" and src.get("x") is not None:
@@ -559,6 +561,7 @@ class GuideBuilder:
                 if src["kind"] == "gather" and src.get("via"):
                     place += f", via {src['via']}"
                 groups[key] = {"kind": src["kind"], "place": place, "items": [],
+                               "source": src.get("source", ""),
                                "note": src.get("note", "")}
             price = src.get("price") if src["kind"] in ("buy", "over_limit") else None
             groups[key]["items"].append({"item": self.ref(iid), "qty": qty, "price": price,
@@ -597,7 +600,7 @@ class GuideBuilder:
             if g["kind"] == "provided":
                 T("Take " if first else ", then take ")
                 listing(g["items"])
-                T(" from your bag")
+                T(" " + (g.get("source") or "from your bag"))
                 if g.get("note"):
                     T(f" ({g['note']})")
                 continue
