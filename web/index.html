@@ -473,7 +473,8 @@ function progressBar(r) {
 
 function timeline(r) {
   let h = `<section class="card" id="timeline"><h2>Your step-by-step timeline</h2>
-    <p class="lead">Follow the steps in order, from Step 1 to the end. In each compound the items are listed in slot order –
+    <p class="lead">Start with the <b>🛒 shopping trip</b>: visit each place once and collect everything listed – the totals cover the
+    whole route, and each item shows the steps that use it. Then follow the compound steps in order. In each compound the items are listed in slot order –
     the first one goes into <b>Slot 1 (Primary)</b>. Each compound makes 1 item, so <i>“repeat until you have N pieces”</i>
     means doing the same compound N times. Tick <b>Done</b> as you go.</p>`;
   if (r.books.length)
@@ -502,7 +503,23 @@ function fromBadge(fr) {
                  : `<span class="badge ${cls}">${esc(fr.text)}</span>`;
 }
 
+function tripCard(s) {
+  const g = s.group;
+  const icon2 = { gather: "🌿", provided: "🎒", missing: "⚠" }[g.kind] || "🛒";
+  let rows = g.items.map(e => `<li><span class="qty">${e.qty}×</span>${icon(e.item)}
+      <span>${item(e.item)} <span class="muted">R${e.item.rank} · ${esc(bases(e.item))}</span>
+      ${e.note ? `<span class="badge warn">${esc(e.note)}</span>` : ""}<br>
+      <span class="small">used in ${e.uses.map(u => `${stepRef(u.step)} (${u.qty}×)`).join(", ")}</span></span>
+      <span class="price">${e.price ? `${fmt(e.price)}g × ${e.qty} = <b>${fmt(e.subtotal)}g</b>` : ""}</span></li>`).join("");
+  return `<div class="tl-step trip buys" id="step-${s.no}"><div class="tl-dot">${icon2}</div>
+    <div class="step-head"><span class="step-no">Step ${s.no}</span><span class="badge info">one visit</span>${doneBox(s.no)}</div>
+    <p class="sentence">${sentence(s.instruction)}</p><ul class="list">${rows}</ul>
+    ${g.note ? `<div class="muted small">${esc(g.note)}</div>` : ""}
+    ${s.gold ? `<div class="muted small">Cost here: <b>${fmt(s.gold)}g</b></div>` : ""}</div>`;
+}
+
 function stepCard(s) {
+  if (s.kind === "trip") return tripCard(s);
   const f = s.formula;
   let rows = s.slots.map(sl => `<tr><td class="slot">${sl.slot} · ${sl.role}</td>
       <td>${icon(sl.item)}</td><td>${item(sl.item)}</td><td>${sl.item.rank}</td><td>${esc(bases(sl.item))}</td>

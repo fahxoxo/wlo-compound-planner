@@ -468,8 +468,10 @@ class GuideBuilder:
 
     def timeline(self, tid, steps, depth):
         """
-        One step per compound, in the order you play them. A step first buys /
-        gathers what it needs, then compounds, then says what to keep on standby.
+        Shopping trip first – one step per place (shop, gathering spot, your
+        inventory), visited once, with everything the whole route needs from
+        there and the steps that use it – then one step per compound, in the
+        order you play them, saying what to keep on standby.
         Branches are finished depth-first (bigger branch first) so few items wait
         on standby at the same time.
         """
@@ -502,7 +504,6 @@ class GuideBuilder:
             for m, kid in zip(f["materials"], kids):
                 if kid not in info:
                     raws[m["id"]] += n
-            groups, gold = self.acquire_groups(raws)
 
             no = len(out) + 1
             slots = []
@@ -516,10 +517,7 @@ class GuideBuilder:
                     s = self.source(iid)
                     assert self.raw[iid]["anytime"] or depth[node] <= K, \
                         f"shop item {iid} used in stage {depth[node]}"
-                    where = s.get("location", "")
-                    text = {"gather": f"gathered at {where}", "provided": s.get("source")}.get(
-                        s["kind"], f"bought at {where}")
-                    frm = {"kind": s["kind"], "step": None, "text": text}
+                    frm = {"kind": s["kind"], "step": None, "raw": iid}  # filled in below
                 slots.append({"slot": s_no, "role": "Primary" if s_no == 1 else f"Sub {s_no - 1}",
                               "item": self.ref(iid), "qty": n, "from": frm})
 
@@ -532,7 +530,7 @@ class GuideBuilder:
             out.append({
                 "no": no, "kind": "compound", "result": self.ref(f["result_id"]), "times": n,
                 "formula": self.formula(f), "slots": slots, "book": f["book"],
-                "acquire": groups, "gold": gold,
+                "acquire": [], "gold": 0, "raws": raws,
                 "stage": depth[node], "buy_allowed": depth[node] <= K,
                 "is_target": node == root, "keep_for": [],
                 "standby": [{"item": self.ref(info[k][0]["result_id"]), "qty": q, "from_step": made[k]}
@@ -540,12 +538,70 @@ class GuideBuilder:
             })
 
         visit(root)
-        for node, no in made.items():
-            out[no - 1]["keep_for"] = sorted(({"step": made[p], "qty": q} for p, q in parents[node]),
-                                             key=lambda d: d["step"])
+
+        # shopping trip: every raw material grouped by place, one visit each
+        total, uses = Counter(), defaultdict(list)
         for st in out:
-            st["instruction"] = self.instruction(st)
+            for iid, q in st.pop("raws").items():
+                total[iid] += q
+                uses[iid].append(st["no"])
+        groups, _ = self.acquire_groups(total)
+        groups.sort(key=lambda g: (g["kind"] != "provided", min(min(uses[e["item"]["id"]]) for e in g["items"])))
+        T = len(groups)
+
+        trip_of = {}
+        trips = []
+        for t, g in enumerate(groups, 1):
+            for e in g["items"]:
+                trip_of[e["item"]["id"]] = t
+            trips.append({"no": t, "kind": "trip", "group": g,
+                          "gold": sum(e["subtotal"] or 0 for e in g["items"])})
+
+        # compound steps come after the trip: renumber and point raw slots at their trip step
+        for st in out:
+            st["no"] += T
+            for sl in st["slots"]:
+                frm = sl["from"]
+                if "raw" in frm:
+                    iid = frm.pop("raw")
+                    t = trip_of[iid]
+                    g = groups[t - 1]
+                    verb = {"gather": "gathered at", "provided": "", "missing": "got"}.get(g["kind"], "bought at")
+                    where = g["source"] if g["kind"] == "provided" else (g["place"] or "elsewhere")
+                    frm.update(step=t, text=f"{verb} {where} (Step {t})".strip())
+                else:
+                    frm["step"] += T
+                    frm["text"] = f"from Step {frm['step']}"
+            for x in st["standby"]:
+                x["from_step"] += T
+        for node, no in made.items():
+            out[no - 1]["keep_for"] = sorted(({"step": made[p] + T, "qty": q} for p, q in parents[node]),
+                                             key=lambda d: d["step"])
+        for g in groups:  # which compound steps use each bought item
+            for e in g["items"]:
+                need = Counter()
+                for no in uses[e["item"]["id"]]:
+                    st = out[no - 1]
+                    need[st["no"]] += sum(sl["qty"] for sl in st["slots"] if sl["item"]["id"] == e["item"]["id"])
+                e["uses"] = [{"step": k, "qty": v} for k, v in sorted(need.items())]
+        out = trips + out
+        for st in out:
+            st["instruction"] = self.trip_instruction(st) if st["kind"] == "trip" else self.instruction(st)
         return out
+
+    @staticmethod
+    def trip_instruction(st):
+        g = st["group"]
+        T = lambda text, b=False: {"t": text, "b": b}
+        if g["kind"] == "provided":
+            return [T("Take these " + (g["source"] or "from your bag") + ":")]
+        if g["kind"] == "missing":
+            return [T("Get these elsewhere (⚠ not sold or gathered – drop, quest or trade):")]
+        if g["kind"] == "gather":
+            return [T("Go to "), T(g["place"], True), T(" and gather everything for this route in one visit:")]
+        extra = {"hawaii": " (⛔ not purchasable in game right now)",
+                 "over_limit": " (above your shop-rank limit)"}.get(g["kind"], "")
+        return [T("Go to "), T(g["place"], True), T(f" and buy everything for this route in one visit{extra}:")]
 
     def acquire_groups(self, raws):
         """Raw materials for one step, grouped by where you get them."""
@@ -553,19 +609,22 @@ class GuideBuilder:
         gold = 0
         for iid, qty in sorted(raws.items(), key=lambda kv: (self.items[kv[0]]["rank"] or 0, kv[0])):
             src = self.source(iid)
-            key = (src["kind"], src.get("location", src.get("source", "")))
+            kind = "buy" if src["kind"] == "over_limit" else src["kind"]  # same shop = same visit
+            key = (kind, src.get("location", src.get("source", "")))
             if key not in groups:
                 place = src.get("location", "")
                 if src["kind"] == "gather" and src.get("x") is not None:
                     place += f" (X {src['x']}, Y {src['y']})"
                 if src["kind"] == "gather" and src.get("via"):
                     place += f", via {src['via']}"
-                groups[key] = {"kind": src["kind"], "place": place, "items": [],
+                groups[key] = {"kind": kind, "place": place, "items": [],
                                "source": src.get("source", ""),
                                "note": src.get("note", "")}
             price = src.get("price") if src["kind"] in ("buy", "over_limit") else None
             groups[key]["items"].append({"item": self.ref(iid), "qty": qty, "price": price,
-                                         "subtotal": price * qty if price else None})
+                                         "subtotal": price * qty if price else None,
+                                         "note": "above your shop-rank limit"
+                                         if src["kind"] == "over_limit" else ""})
             gold += price * qty if price else 0
         order = {"missing": -1, "provided": 0, "gather": 1, "buy": 2, "hawaii": 3, "over_limit": 4}
         return sorted(groups.values(), key=lambda g: (order[g["kind"]], g["place"])), gold
@@ -795,10 +854,25 @@ def render_markdown(g):
             w("")
         w("## Your step-by-step timeline")
         w("")
-        w("Follow the steps in order. Items in a compound are listed in slot order – the first one "
+        w("First visit each place once (🛒 steps) and collect everything listed – the totals cover the "
+          "whole route. Then follow the compound steps in order. Items in a compound are listed in slot order – the first one "
           "goes into **Slot 1 (Primary)**. Each compound makes 1 item, so *repeat until you have N "
           "pieces* means doing the same compound N times.")
         for stp in r["timeline"]:
+            if stp["kind"] == "trip":
+                w("")
+                w(f"### Step {stp['no']} · 🛒 {sentence(stp['instruction'])}")
+                for e in stp["group"]["items"]:
+                    price = f" – {e['price']}g each = {e['subtotal']:,}g" if e["price"] else ""
+                    used = ", ".join(f"Step {u['step']} ({u['qty']}×)" for u in e["uses"])
+                    note = f" _({e['note']})_" if e.get("note") else ""
+                    w(f"- **{e['qty']}×** {it(e['item'])} · {bases(e['item'])}{price}{note} → used in {used}")
+                if stp["group"].get("note"):
+                    w(f"- _{stp['group']['note']}_")
+                if stp["gold"]:
+                    w(f"- Cost here: {stp['gold']:,}g")
+                w("- [ ] Done")
+                continue
             f = stp["formula"]
             w("")
             w(f"### Step {stp['no']}  {label(f)}")
