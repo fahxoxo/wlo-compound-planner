@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: wlo-compound-planner
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python wlo_app.py --cloud
+    healthCheckPath: /api/info
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: WLO_CLOUD
+        value: "1"

@@ -1,0 +1,161 @@
+﻿id,location,item_id,item_name,rank,type,subtype,bases,price
+1,Rome,22,Obsidian,3,Material,Rock,Rock,50
+2,Welling Village,27,White Clay,2,Material,Clay,White/Yellow Clay,30
+3,Holy Village,29,Custard Tart,4,Material,Food,Wheat / Egg / Dairy Product,70
+4,Revival Isle,33,Rock Ax,12,Weapon,Ax,Copper / Wood,370
+5,Bangkok,44,Twin Claws,9,Weapon,Claw,Steel,240
+6,South Pole,49,Blooded Claw,13,Weapon,Claw,Steel,410
+7,Fishing Village,50,Poison Claw,15,Weapon,Claw,Steel,510
+8,Bangkok,56,Coconut,3,Material,Food,Fruit,50
+9,South Pole,66,Ox Horn Hat,13,Armor,Head,Copper / Hard Tissue,410
+10,Kyoto,68,Vine Hat,14,Armor,Head,Wood / Grass,460
+11,Kyoto,89,Nigiri Sushi,4,Material,Food,Fish and Shellfish,70
+12,South Pole,143,Fugu Sashimi,5,Material,Food,Fish and Shellfish,100
+13,Kelan Village,144,Rice Wine,3,Material,Food,Rice,50
+14,Inca,150,Hot Dog,3,Material,Food,Meat,50
+15,Korea (Inchon),151,Ham,3,Material,Food,Meat,50
+16,Kelan Village,153,Bread,1,Material,Food,Wheat,10
+17,Welling Village,155,Wholegrain Bread,2,Material,Food,Wheat,30
+18,Oslya,160,Australian Bread,3,Material,Food,Wheat,50
+19,Fishing Village,166,BBQ Pork Buns,5,Material,Food,Meat / Wheat,110
+20,Korea (Inchon),168,Shandong Buns,1,Material,Food,Wheat,10
+21,Fishing Village,170,Super Buns,4,Material,Food,Wheat,70
+22,Oslya,171,Meatballs,5,Material,Food,Meat,100
+23,Chang' an,182,Meat Over Rice,6,Material,Food,Rice / Meat,130
+24,Revival Isle,192,Fruit Cake,4,Material,Food,Wheat / Vegetable / Meat / Fish and Shellfish,70
+25,Calcutta,207,Roast Pigeon,6,Material,Food,Meat,130
+26,Cairo,212,Pepper Shrimp,2,Material,Food,Fish and Shellfish,30
+27,Mayan Tribe,213,Rice Wine Shrimp,5,Material,,Fish and Shellfish,100
+28,Revival Isle,218,Braised Stingray,4,Material,Food,Fish and Shellfish,70
+29,Fishing Village,219,Rice Wine Chicken,7,Material,Food,Meat,170
+30,Korea (Inchon),234,Fried Fugu,9,Material,Food,Fish and Shellfish,240
+31,Yamataikoku,312,Eagle Feather,10,Material,Beast,Feather,280
+32,Athens,326,Fine Wood,10,Material,Wood,Wood,280
+33,Fishing Village,331,Qi Pao,13,Armor,Body,Flower,410
+34,Revival Isle,344,Silvery Earrings,9,Armor,Special,Silver,240
+35,Persia,351,White Rose,10,Material,Plant,Flower,280
+36,Revival Isle,354,Leather Armor,16,Armor,Body,Iron / Leather,560
+37,South Pole,356,Warm Clothes,13,Armor,Body,Flower,410
+38,Mayan Tribe,357,Iron Cuffs,14,Armor,Arm,Flower / Iron,460
+39,South Pole,358,Fur Boots,13,Armor,Shoes,Leather / Fur,410
+40,Inca,359,Teeth Bracers,8,Armor,Arm,Leather,200
+41,Korea (Inchon),371,Silvery Ring,14,Armor,Special,Platinum,460
+42,Inca,375,Silvery Shoes,7,Armor,Shoes,Platinum,170
+43,South Pole,385,Emerald Staff,12,Weapon,Wand,Tin / Jade,370
+44,Kyoto,387,Warrior's Falchion,15,Weapon,Blade,Iron / Wood,510
+45,Welling Village,391,Bronze Sword,3,Weapon,Sword,Copper / Wood,30
+46,Fishing Village,394,Bronze Halberd,15,Weapon,Spear,Copper / Wood,510
+47,Oslya,398,Great Gloves,11,Armor,Arm,Leather,320
+48,Revival Isle,399,Stone Wand,9,Weapon,Wand,Rock / Wood,240
+49,Universal Island,488,Rectifier Line,5,Manufacture,Item,Iron,100
+50,Persia,504,Swallow Feather,6,Material,Beast,Feather,130
+51,Holy Village,505,Iron Sword,4,Weapon,Sword,Iron,70
+52,Korea (Inchon),518,Big Stone Gavel,14,Weapon,Club,Rock / Grass / Wood,460
+53,Mayan Tribe,539,Blade Halberd,8,Weapon,Spear,Copper / Wood,200
+54,Inca,561,Big Cypress Stick,7,Weapon,Club,Wood,170
+55,Fishing Village,563,Great Sword,14,Weapon,Sword,Iron / Wood,460
+56,Calcutta,591,Indian Machete,11,Weapon,Blade,Iron / Wood,380
+57,Rome,602,Dry Clay,3,Material,Clay,Dry Clay,50
+58,Calcutta,612,Special Stick,11,Weapon,Wand,Tin / Quartz (Crystal),320
+59,Cairo,618,Forest Staff,18,Weapon,Wand,Tin / Jade,660
+60,Calcutta,643,Jewel Necklace,11,Armor,Special,Gold,320
+61,Oslya,656,Hunting Boots,10,Armor,Shoes,Leather,280
+62,Cairo,667,Copper Crest,18,Armor,Head,Copper / Corundum,660
+63,Athens,668,Black Spear,11,Weapon,Spear,Titanium / Copper,320
+64,Athens,669,Black Ax,11,Weapon,Ax,Hard Tissue / Grass / Wood,320
+65,Athens,670,Crystal Blue Wand,9,Weapon,Wand,Quartz (Crystal) / Jade,240
+66,Athens,671,White Dragon Gown,15,Armor,Body,Leather / Flower,510
+67,Inca,673,Pure Iron Fine Sword,10,Weapon,Sword,Pure Iron,280
+68,Inca,674,Copper Armor,14,Armor,Body,Copper,460
+69,Chang' an,675,Pure Iron Saber,15,Weapon,Blade,Pure Iron / Wood,510
+70,Chang' an,676,Copper Cuffs,12,Armor,Arm,Flower / Copper,370
+71,Chang' an,677,Red Qi Pao,13,Armor,Body,Grass / Flower,410
+72,Chang' an,678,Yellow Boots,12,Armor,Shoes,Nylon / Fur,370
+73,Chang' an,679,Bright Earrings,14,Armor,Special,Quartz (Crystal) / Silver,460
+74,Bangkok,680,Leaf Clothes,10,Armor,Body,Leaf / Grass,280
+75,Bangkok,681,Wolf Bracers,16,Armor,Arm,Titanium,560
+76,Cairo,683,Sea Armor,18,Armor,Body,Steel / Flower,660
+77,Cairo,684,Demon Gloves,18,Armor,Arm,Leather / Grass,660
+78,Cairo,685,Iron Net Boots,17,Armor,Shoes,Iron,610
+79,Korea (Inchon),686,Silvery Claw,14,Weapon,Claw,Silver,460
+80,Korea (Inchon),687,Demon Gown,15,Armor,Body,Flower,510
+81,Korea (Inchon),688,Net Boots,16,Armor,Shoes,Copper / Grass,560
+82,Kyoto,689,Ninja Suit,23,Armor,Body,Nylon / Flower,460
+83,Kyoto,690,Wooden Shoes,1,Armor,Shoes,Wood / Fur,460
+84,Fishing Village,691,Dragon Staff,14,Weapon,Wand,Wood / Magic,460
+85,Oslya,693,Cold Falchion,10,Weapon,Blade,Iron / Wood,280
+86,Mayan Tribe,694,Copper Woven Boots,10,Armor,Shoes,Steel,280
+87,Revival Isle,695,Water Bracers,12,Armor,Arm,Flower,370
+88,Kyoto,716,Cotton Clothes,14,Armor,Body,Flower / Grass,460
+89,Kyoto,772,Horse Shoes,15,Armor,Shoes,Leather / Fur,510
+90,Kyoto,773,Spirit Gloves,15,Armor,Arm,Flower / Magic / Grass,510
+91,Welling Village,783,Copper Material,4,Material,Mineral,Copper,70
+92,South Pole,841,Ammonia,6,Item,Battle,Chemical,130
+93,Hawaii,864,Refined Tin (R18),18,Material,,Tin,0
+94,Rome,904,Delicate Wood,14,Material,Wood,Wood,460
+95,Calcutta,905,Fresh Water,2,Material,Water,Water (Type 2),30
+96,Kyoto,939,Silk Qi Pao,16,Armor,Body,Flower / Grass,560
+97,Universal Island,942,Capacitance,2,Manufacture,Item,Iron,30
+98,Universal Island,974,Resistance,2,Manufacture,Item,Iron,30
+99,Hawaii,1032,Fine Grass,18,Material,Plant,Grass,0
+100,Hawaii,1034,Refined Gold,18,Material,Mineral,Gold,0
+101,Hawaii,1035,Fine Crystal,18,Material,Mineral,Quartz (Crystal),0
+102,Hawaii,1042,Fine Golden Rose,18,Material,Plant,Flower,0
+103,Hawaii,1043,Magic Crystal Powder,18,Material,Mineral,Magic,0
+104,Hawaii,1044,Delicate Leather,18,Material,Beast,Leather,0
+105,Hawaii,1045,Fine Leaf,18,Material,Plant,Leaf,0
+106,Inca,1046,Protection Potion,3,Item,Battle,Chemical,50
+107,Hawaii,1090,Fine Nylon,18,Manufacture,Item,Nylon,0
+108,Hawaii,1153,Fine Log,18,Material,Wood,Wood,0
+109,Hawaii,1154,Refined White Silver,18,Material,Mineral,Platinum,0
+110,Hawaii,1155,Yueyi Rock,18,Material,Rock,Rock,0
+111,Hawaii,1158,Refined Silver,18,Material,Mineral,Silver,0
+112,Hawaii,1159,Refined Titanium,18,Material,Mineral,Titanium,0
+113,Hawaii,1160,Refined Hematite,18,Material,Mineral,Pure Iron,0
+114,Athens,1207,Turquoise Wand,9,Weapon,Wand,Corundum / Gold,240
+115,Hawaii,1214,Fresh Milk,3,Material,Food,Dairy Product,80
+116,Hawaii,1217,Soyseafood Rice,28,Material,Food,Fish and Shellfish,500
+117,Hawaii,1218,Cabbage Sauce,20,Material,Food,Rice,900
+118,Hawaii,1219,Seafood Sauce,20,Material,Food,Fish and Shellfish,900
+119,Calcutta,1243,Brandy,6,Material,Food,Liquor,130
+120,South Pole,1247,Bicolor Sundaes,4,Material,Food,Water (Type 1) / Fruit,70
+121,Hawaii,1337,Fine Hide,18,Material,Beast,Fur,0
+122,Kyoto,1342,Sake,8,Material,Food,Liquor,200
+123,Fishing Village,1404,Spring Milk Tea,5,Material,Food,Water (Type 1) / Vegetable,100
+124,Fishing Village,1406,Wonderful Noodles,7,Material,Food,Wheat / Fruit / Egg,170
+125,Fishing Village,1407,Thousand-Leaves Cake,4,Material,Food,Rice / Wheat,70
+126,Fishing Village,1408,Iron Buhdda,7,Material,Food,Leaf / Water (Type 1),170
+127,Fishing Village,1651,Granite,6,Material,Rock,Rock,130
+128,Kelan Village,1694,Ordinary Wood,2,Material,Wood,Wood,30
+129,Mayan Tribe,1705,Oak Wood,4,Material,Wood,Wood,70
+130,Yamataikoku,2311,Emerald,5,Material,Mineral,Corundum,100
+131,Revival Isle,2651,Bomb,6,Item,Battle,Saltpeter / Black Clay,130
+132,Hawaii,2736,Apple Berry Syrup,8,Material,Food,None,750
+133,Hawaii,2737,Grape Berry Syrup,9,Material,Food,None,800
+134,Hawaii,2738,Lemon Berry Syrup,8,Material,Food,None,800
+135,Hawaii,2739,Mandar Berry Syrup,9,Material,Food,None,800
+136,Mayan Tribe,2855,Deity Hat,6,Armor,Head,Grass,130
+137,Welling Village,2875,Grass Boots,3,Armor,Shoes,Grass,30
+138,Bangkok,2886,Gem Necklace,8,Armor,Special,Diamond,200
+139,Kelan Village,2907,Lauan Stick,3,Weapon,Club,Wood,30
+140,Chang' an,3009,Cinnamon,3,Material,Food,Vegetable,50
+141,Kelan Village,3050,Bronze Claw,3,Weapon,Claw,Copper,30
+142,Kelan Village,3051,Stone Ax,2,Weapon,Ax,Copper,20
+143,Welling Village,3061,Headband,2,Armor,Head,Flower,30
+144,Holy Village,3075,Iron Sand,4,Material,Mineral,Iron,70
+145,Athens,3077,Big Fruit Leaf,6,Material,Plant,Leaf,130
+146,Kyoto,3079,Cubic Sword,5,Item,Battle,Iron,100
+147,Holy Village,3093,Grass Crest,6,Armor,Head,Leaf / Grass,130
+148,Holy Village,3094,Ghost Bracers,5,Armor,Arm,Leather / Gum,100
+149,Oslya,3126,Tin Staff,9,Weapon,Wand,Tin / Jade,240
+150,Cairo,3147,Fruit Wine,6,Material,Food,Fruit,130
+151,Holy Village,3155,Light Clothes,5,Armor,Body,Flower / Grass,100
+152,Chang' an,3156,Purple Grass,6,Material,Plant,Grass,130
+153,Welling Village,3172,Artificial Coat,4,Armor,Body,Leather,70
+154,Welling Village,3184,Wizard's Wand,4,Weapon,Wand,Wood,40
+155,Kelan Village,3189,Lauan,2,Material,Wood,Wood,30
+156,Holy Village,3210,Lauan Wood,3,Material,Wood,Wood,50
+157,Kelan Village,3211,Leather Garment,2,Armor,Body,Leather,30
+158,Bangkok,3213,Green Headdress,10,Armor,Head,Grass,280
+159,Calcutta,3214,Flame Shoes,10,Armor,Shoes,Pure Iron,280
+160,Kyoto,3219,Cypress Wood,5,Material,Wood,Wood,100

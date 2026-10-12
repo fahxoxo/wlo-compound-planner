@@ -1,0 +1,26 @@
+{
+  "items": {
+    "count": 6882,
+    "site_total": 6882,
+    "scraped_at": "2026-10-12T05:47:07+00:00",
+    "source": "https://wlohub.com/items"
+  },
+  "shops": {
+    "count": 160,
+    "site_total": 160,
+    "scraped_at": "2026-10-12T05:47:14+00:00",
+    "source": "https://wlohub.com/shops"
+  },
+  "compounds": {
+    "count": 26047,
+    "site_total": 26047,
+    "scraped_at": "2026-10-12T06:19:21+00:00",
+    "source": "https://wlohub.com/compounds"
+  },
+  "collections": {
+    "count": 160,
+    "site_total": 160,
+    "scraped_at": "2026-10-12T06:13:10+00:00",
+    "source": "https://wlohub.com/collections"
+  }
+}

@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>WLO Compound Planner</title>
+<style>
+:root {
+  --bg: #f4f5f8; --panel: #ffffff; --panel-2: #f8f9fb; --text: #1d2330; --muted: #667085;
+  --border: #e3e6ec; --accent: #3b6fe0; --accent-soft: #e8efff; --ok: #1f8f4e; --ok-soft: #e4f6eb;
+  --warn: #b56b00; --warn-soft: #fff3df; --bad: #c0392b; --bad-soft: #fdecea; --done: #9aa3b2;
+  --shadow: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08); --radius: 10px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12151c; --panel: #1a1f29; --panel-2: #202634; --text: #e6e9ef; --muted: #98a2b3;
+    --border: #2c3443; --accent: #7aa2ff; --accent-soft: #1f2b47; --ok: #4cc98a; --ok-soft: #173326;
+    --warn: #f0b04a; --warn-soft: #3a2c12; --bad: #ff7b6e; --bad-soft: #3d1c1a; --done: #5d6677;
+    --shadow: none; color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+a { color: var(--accent); text-decoration: none; cursor: pointer; }
+a:hover { text-decoration: underline; }
+button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--panel); color: var(--text); padding: 6px 12px; }
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+input[type=text], input[type=number] { font: inherit; color: var(--text); background: var(--panel);
+  border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; width: 100%; }
+input:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+
+/* top bar */
+.top { position: sticky; top: 0; z-index: 20; background: var(--panel); border-bottom: 1px solid var(--border);
+  display: flex; gap: 16px; align-items: center; padding: 10px 20px; }
+.brand { font-weight: 700; font-size: 16px; white-space: nowrap; }
+.brand span { color: var(--accent); }
+.search { position: relative; flex: 1; max-width: 560px; min-width: 0; }
+@media (max-width: 600px) { .top { flex-wrap: wrap; padding: 8px 12px; } .search { flex-basis: 100%; } .progress { top: 0; } }
+.dropdown { position: absolute; left: 0; right: 0; top: calc(100% + 4px); background: var(--panel);
+  border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 8px 24px rgba(0,0,0,.18);
+  max-height: 420px; overflow-y: auto; z-index: 30; }
+.dropdown .opt { display: flex; gap: 10px; align-items: center; padding: 7px 10px; cursor: pointer; }
+.dropdown .opt.active, .dropdown .opt:hover { background: var(--accent-soft); }
+.dropdown .empty { padding: 10px; color: var(--muted); }
+.opt .meta { color: var(--muted); font-size: 12px; }
+.icon { width: 28px; height: 28px; object-fit: contain; flex: none; }
+
+/* layout */
+.layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; padding: 20px;
+  max-width: 1400px; margin: 0 auto; }
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; padding: 12px; } aside .card { position: static; } }
+.layout > * { min-width: 0; }
+aside .card { position: sticky; top: 76px; }
+.card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 16px; }
+.card + .card, section + section { margin-top: 16px; }
+.card h3 { margin: 0 0 12px; font-size: 15px; }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-weight: 600; margin-bottom: 4px; }
+.field small { color: var(--muted); display: block; margin-top: 3px; line-height: 1.35; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.chip { background: var(--accent-soft); border-radius: 999px; padding: 3px 4px 3px 10px; font-size: 12px;
+  display: inline-flex; align-items: center; gap: 4px; }
+.chip button { border: none; background: none; padding: 0 6px; color: var(--muted); }
+.check { display: flex; gap: 8px; align-items: center; }
+
+/* guide */
+.hero { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+.hero img { width: 48px; height: 48px; }
+.hero h1 { margin: 0; font-size: 22px; }
+.hero .sub { color: var(--muted); }
+.hero .actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 14px; }
+.tile { background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+.tile .v { font-size: 20px; font-weight: 700; }
+.tile .k { color: var(--muted); font-size: 12px; }
+.note { border-radius: 8px; padding: 10px 12px; margin-top: 12px; }
+.note.warn { background: var(--warn-soft); color: var(--warn); }
+.note.bad { background: var(--bad-soft); color: var(--bad); }
+.note.info { background: var(--accent-soft); }
+.note.ok { background: var(--ok-soft); color: var(--ok); }
+.progress { position: sticky; top: 58px; z-index: 10; margin-top: 16px; background: var(--panel);
+  border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px;
+  display: flex; gap: 14px; align-items: center; flex-wrap: wrap; box-shadow: var(--shadow); }
+.bar { flex: 1; min-width: 160px; height: 10px; background: var(--panel-2); border-radius: 999px; overflow: hidden;
+  border: 1px solid var(--border); }
+.bar > div { height: 100%; background: var(--ok); width: 0; transition: width .2s; }
+.nav { display: flex; gap: 6px; flex-wrap: wrap; }
+.nav a { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--panel-2);
+  border: 1px solid var(--border); color: var(--text); }
+.nav a.complete { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+h2 { font-size: 18px; margin: 0 0 4px; }
+.lead { color: var(--muted); margin: 0 0 12px; }
+.group { margin-top: 14px; }
+.group h4 { margin: 0 0 6px; font-size: 14px; }
+.group h4 .kind { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; padding: 1px 6px;
+  border-radius: 4px; margin-right: 6px; background: var(--panel-2); color: var(--muted); }
+.list { list-style: none; margin: 0; padding: 0; }
+.list li { display: flex; gap: 10px; align-items: center; padding: 6px 8px; border-radius: 6px; flex-wrap: wrap; }
+.list li:nth-child(odd) { background: var(--panel-2); }
+.list li.done { color: var(--done); text-decoration: line-through; }
+.list .qty { font-weight: 700; min-width: 42px; text-align: right; }
+.list .price { margin-left: auto; white-space: nowrap; color: var(--muted); }
+.muted { color: var(--muted); }
+.total { margin-top: 12px; font-weight: 700; }
+
+details.stage { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+  margin-top: 12px; box-shadow: var(--shadow); }
+details.stage > summary { list-style: none; cursor: pointer; padding: 12px 16px; display: flex; gap: 10px;
+  align-items: center; flex-wrap: wrap; }
+details.stage > summary::-webkit-details-marker { display: none; }
+details.stage > summary::before { content: "▸"; color: var(--muted); }
+details.stage[open] > summary::before { content: "▾"; }
+.stage-title { font-weight: 700; font-size: 15px; }
+.badge { font-size: 11px; font-weight: 600; border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+.badge.ok { background: var(--ok-soft); color: var(--ok); }
+.badge.warn { background: var(--warn-soft); color: var(--warn); }
+.badge.bad { background: var(--bad-soft); color: var(--bad); }
+.badge.info { background: var(--accent-soft); color: var(--accent); }
+.badge.plain { background: var(--panel-2); color: var(--muted); }
+.stage-body { padding: 0 16px 16px; }
+.step { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin-top: 10px;
+  background: var(--panel-2); transition: background .6s; }
+.step.flash { background: var(--accent-soft); }
+.step.done { opacity: .55; }
+.step-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.step-no { font-weight: 700; color: var(--accent); }
+.step-title { font-weight: 700; font-size: 15px; }
+.repeat { font-weight: 700; color: var(--warn); }
+.table-wrap { overflow-x: auto; margin: 10px 0 8px; }
+table { border-collapse: collapse; width: 100%; min-width: 560px; background: var(--panel); }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+th { font-size: 12px; color: var(--muted); font-weight: 600; }
+td.slot { white-space: nowrap; font-weight: 600; }
+.from-step { font-weight: 600; }
+.lines { margin: 4px 0 0; padding-left: 18px; }
+.lines li { margin: 2px 0; }
+.done-row { margin-top: 8px; display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.inventory { margin-top: 12px; border-left: 4px solid var(--ok); background: var(--ok-soft); border-radius: 6px;
+  padding: 8px 12px; }
+.formula { padding: 8px 10px; border-radius: 8px; background: var(--panel-2); margin-top: 8px; }
+.formula .sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
+.spinner { width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--accent);
+  border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.center { display: flex; gap: 14px; align-items: center; justify-content: center; padding: 60px 20px;
+  flex-direction: column; text-align: center; }
+.welcome h1 { margin: 0 0 6px; }
+.examples { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+footer { color: var(--muted); font-size: 12px; text-align: center; padding: 20px; }
+.tl { position: relative; margin-top: 14px; padding-left: 34px; }
+.tl::before { content: ""; position: absolute; left: 13px; top: 6px; bottom: 6px; width: 2px; background: var(--border); }
+.tl-step { position: relative; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px;
+  margin-bottom: 12px; background: var(--panel-2); transition: background .6s, opacity .2s; }
+.tl-step.acquire { background: var(--panel); border-style: dashed; }
+.tl-step.target { border-color: var(--ok); }
+.tl-step.current { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.tl-step.flash { background: var(--accent-soft); }
+.tl-step.done { opacity: .5; }
+.tl-dot { position: absolute; left: -34px; top: 10px; width: 28px; height: 28px; border-radius: 50%;
+  background: var(--panel); border: 2px solid var(--border); display: grid; place-items: center; font-size: 14px; }
+.tl-step.current .tl-dot { border-color: var(--accent); }
+.tl-step.done .tl-dot { border-color: var(--ok); }
+.done-box { margin-left: auto; display: inline-flex; gap: 6px; align-items: center; font-weight: 600;
+  padding: 3px 10px; border: 1px solid var(--border); border-radius: 999px; background: var(--panel); cursor: pointer; }
+.sentence { font-size: 15px; line-height: 1.65; margin: 8px 0 6px; }
+.sentence b a { color: var(--accent); }
+details.slots > summary { cursor: pointer; color: var(--muted); font-size: 12px; margin: 2px 0; }
+.tl-step.buys { border-left: 4px solid var(--accent); }
+.keep { margin-top: 4px; }
+.standby { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.standby .chip { color: var(--text); padding: 2px 10px; }
+a.badge { text-decoration: none; }
+.small { font-size: 12px; margin-top: 6px; }
+details.card > summary { cursor: pointer; }
+@media print {
+  details.slots { display: block; } details.slots > div { display: block; }
+  .top, aside, .progress, .hero .actions { display: none !important; }
+  .layout { display: block; padding: 0; }
+  .tl-step { break-inside: avoid-page; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">WLO <span>Compound Planner</span> <small class="muted" style="font-weight:400;font-size:11px">v__APP_VERSION__</small></div>
+  <div class="search">
+    <input id="q" type="text" placeholder="Search an item to craft… (name or #id)" autocomplete="off">
+    <div id="qList" class="dropdown" hidden></div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="card">
+      <h3>Settings</h3>
+      <div class="field">
+        <label for="msr">Highest shop rank to buy</label>
+        <input id="msr" type="number" min="1" max="60" value="14">
+        <small>Only shop items up to this rank are bought.</small>
+      </div>
+      <div class="field">
+        <label for="bs">Shop items allowed until stage</label>
+        <input id="bs" type="number" min="1" max="20" value="2">
+        <small>After this stage, every step uses crafted (or gathered) items only.</small>
+      </div>
+      <div class="field">
+        <label>Items I have / can get</label>
+        <div id="haveChips" class="chips"></div>
+        <div class="search">
+          <input id="hq" type="text" placeholder="Add item… (drop, quest, trade)" autocomplete="off">
+          <div id="hqList" class="dropdown" hidden></div>
+        </div>
+        <small>These can be used at any stage and are not bought.</small>
+      </div>
+      <div class="field check">
+        <input id="all" type="checkbox"><label for="all" style="margin:0;font-weight:400">Also list Tier 3 (unconfirmed) formulas</label>
+      </div>
+      <button id="apply" class="primary" style="width:100%">Recalculate</button>
+    </div>
+  </aside>
+  <main id="main"></main>
+</div>
+<footer id="foot"></footer>
+
+<script>
+"use strict";
+const PAGE_VERSION = "__APP_VERSION__";
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt = n => Number(n || 0).toLocaleString("en-US");
+const bases = it => (it.bases || []).join(" / ") || "–";
+
+// ------------------------------------------------------------ state
+const state = { id: null, msr: 14, bs: 2, have: [], all: false };   // have: [{id,name,rank}]
+let guide = null, progress = null;
+
+function store(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
+function load(key, dflt) { try { const v = JSON.parse(localStorage.getItem(key)); return v ?? dflt; } catch (e) { return dflt; } }
+
+function readSettings() {
+  const s = load("wlo-settings", {});
+  if (s.msr) state.msr = s.msr;
+  if (s.bs) state.bs = s.bs;
+  if (Array.isArray(s.have)) state.have = s.have;
+  state.all = !!s.all;
+}
+function saveSettings() { store("wlo-settings", { msr: state.msr, bs: state.bs, have: state.have, all: state.all }); }
+
+function hashFor(id) {
+  const p = new URLSearchParams({ id, msr: state.msr, bs: state.bs, all: state.all ? 1 : 0 });
+  if (state.have.length) p.set("have", state.have.map(h => h.id).join(","));
+  return "#" + p.toString();
+}
+function readHash() {
+  const p = new URLSearchParams(location.hash.slice(1));
+  if (!p.get("id")) return false;
+  state.id = +p.get("id");
+  if (p.get("msr")) state.msr = +p.get("msr");
+  if (p.get("bs")) state.bs = +p.get("bs");
+  state.all = p.get("all") === "1";
+  const ids = (p.get("have") || "").split(",").filter(Boolean).map(Number);
+  const known = Object.fromEntries(state.have.map(h => [h.id, h]));
+  state.have = ids.map(i => known[i] || { id: i, name: "#" + i });
+  return true;
+}
+function openItem(id) {
+  const h = hashFor(id);
+  if (location.hash === h) run(); else location.hash = h;
+}
+
+// ------------------------------------------------------------ settings panel
+function syncPanel() {
+  $("#msr").value = state.msr; $("#bs").value = state.bs; $("#all").checked = state.all;
+  $("#haveChips").innerHTML = state.have.length ? state.have.map(h =>
+    `<span class="chip">${esc(h.name)}${h.rank != null ? " (R" + h.rank + ")" : ""}<button title="Remove" data-rm="${h.id}">×</button></span>`
+  ).join("") : `<span class="muted">None</span>`;
+}
+$("#haveChips").addEventListener("click", e => {
+  const id = e.target.dataset.rm;
+  if (!id) return;
+  state.have = state.have.filter(h => h.id !== +id);
+  syncPanel(); saveSettings();
+});
+$("#apply").addEventListener("click", () => {
+  state.msr = Math.max(1, +$("#msr").value || 14);
+  state.bs = Math.max(1, +$("#bs").value || 2);
+  state.all = $("#all").checked;
+  saveSettings();
+  if (state.id) openItem(state.id);
+});
+function addHave(items) {
+  for (const it of items) if (!state.have.some(h => h.id === it.id))
+    state.have.push({ id: it.id, name: it.name, rank: it.rank });
+  syncPanel(); saveSettings();
+}
+
+// ------------------------------------------------------------ search boxes
+function makeSearch(input, list, onPick) {
+  let items = [], active = -1, timer = null, seq = 0;
+  const close = () => { list.hidden = true; active = -1; };
+  const draw = () => {
+    list.innerHTML = items.length ? items.map((it, i) => `
+      <div class="opt ${i === active ? "active" : ""}" data-i="${i}">
+        <img class="icon" src="${esc(it.icon)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+        <div><div><b>${esc(it.name)}</b> <span class="badge plain">R${it.rank ?? "?"}</span></div>
+        <div class="meta">${esc(it.type)}${it.subtype ? " [" + esc(it.subtype) + "]" : ""} · ${esc(bases(it))} · #${it.id}</div></div>
+      </div>`).join("") : `<div class="empty">No items found</div>`;
+    list.hidden = false;
+  };
+  input.addEventListener("input", () => {
+    clearTimeout(timer);
+    const q = input.value.trim();
+    if (!q) return close();
+    timer = setTimeout(async () => {
+      const my = ++seq;
+      const r = await fetch("/api/search?q=" + encodeURIComponent(q)).then(r => r.json()).catch(() => []);
+      if (my !== seq) return;
+      items = r; active = items.length ? 0 : -1; draw();
+    }, 120);
+  });
+  input.addEventListener("keydown", e => {
+    if (list.hidden) return;
+    if (e.key === "ArrowDown") { active = Math.min(items.length - 1, active + 1); draw(); e.preventDefault(); }
+    else if (e.key === "ArrowUp") { active = Math.max(0, active - 1); draw(); e.preventDefault(); }
+    else if (e.key === "Enter" && items[active]) { pick(items[active]); e.preventDefault(); }
+    else if (e.key === "Escape") close();
+  });
+  list.addEventListener("mousedown", e => {
+    const opt = e.target.closest(".opt");
+    if (opt) { pick(items[+opt.dataset.i]); e.preventDefault(); }
+  });
+  input.addEventListener("blur", () => setTimeout(close, 150));
+  function pick(it) { close(); input.value = ""; onPick(it); }
+}
+makeSearch($("#q"), $("#qList"), it => openItem(it.id));
+makeSearch($("#hq"), $("#hqList"), it => addHave([it]));
+
+// ------------------------------------------------------------ rendering helpers
+const item = (it, cls = "") =>
+  `<a class="item-link ${cls}" data-item="${it.id}" title="Open the guide for ${esc(it.name)}">${esc(it.name)}</a>`;
+const icon = it => `<img class="icon" src="${esc(it.icon)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`;
+const label = f => f.user
+  ? `<span class="badge info" title="${esc(f.note || "")}">★ Your shortcut</span>`
+  : f.verified
+  ? `<span class="badge ok">✔ Confirmed${f.verified_by ? " · " + esc(f.verified_by) : ""}</span>`
+  : `<span class="badge warn">⚠ Unconfirmed</span>`;
+const stepRef = n => `<a class="stepref from-step" data-step="${n}">Step ${n}</a>`;
+
+function formulaLine(f, extra = "") {
+  const parts = f.materials.map((m, i) =>
+    `${i === 0 ? "<b>" : ""}${item(m)} <span class="muted">R${m.rank}</span>${i === 0 ? "</b>" : ""}`);
+  if (f.book) parts.push(`Alchemy Book ${f.book}`);
+  return `<div class="formula">${parts.join(" + ")} → <b>${item(f.result)}</b> <span class="muted">R${f.result.rank}</span>
+    ${label(f)}<div class="sub">formula #${f.id} · rank spread ${f.rank_spread}${extra}</div></div>`;
+}
+function fromText(fr) {
+  if (fr.kind === "step") return stepRef(fr.step);
+  const cls = { provided: "info", gather: "ok", buy: "plain", hawaii: "bad" }[fr.kind] || "plain";
+  return `<span class="badge ${cls}">${esc(fr.text)}</span>`;
+}
+
+// ------------------------------------------------------------ main views
+function welcome() {
+  $("#main").innerHTML = `<div class="card center welcome">
+    <h1>What do you want to craft?</h1>
+    <p class="muted">Search for any item above. The planner builds a complete step-by-step route
+    from NPC shop and gathered materials up to your target.</p>
+    <div class="examples">
+      <button data-ex="1148">Cloth Armband (R30)</button>
+      <button data-ex="2675">Polar Ultima (R44)</button>
+    </div></div>`;
+  $$("[data-ex]").forEach(b => b.onclick = () => openItem(+b.dataset.ex));
+}
+
+async function run() {
+  if (!readHash()) { syncPanel(); return welcome(); }
+  syncPanel(); saveSettings();
+  const main = $("#main");
+  main.innerHTML = `<div class="card center"><div class="spinner"></div><div>Calculating the best route…</div>
+    <div id="slow" class="muted" hidden>Still working – checking which items could unlock a route. This can take up to 15 seconds.</div></div>`;
+  const slow = setTimeout(() => { const s = $("#slow"); if (s) s.hidden = false; }, 1500);
+  const p = new URLSearchParams({ id: state.id, max_shop_rank: state.msr, buy_stages: state.bs, all: state.all ? 1 : 0 });
+  if (state.have.length) p.set("have", state.have.map(h => h.id).join(","));
+  const id = state.id;
+  let g;
+  try {
+    const r = await fetch("/api/guide?" + p);
+    g = await r.json();
+    if (!r.ok) throw new Error(g.error || r.statusText);
+  } catch (e) {
+    clearTimeout(slow);
+    main.innerHTML = `<div class="card note bad">Could not build the guide: ${esc(e.message)}.
+      Is the app window (python wlo_app.py) still running?</div>`;
+    return;
+  }
+  clearTimeout(slow);
+  if (id !== state.id) return;                     // a newer request is running
+  state.have = g.settings.have.map(h => ({ id: h.id, name: h.name, rank: h.rank }));
+  syncPanel(); saveSettings();
+  guide = g;
+  render(g, p);
+}
+
+function progressKey() {
+  return `wlo-progress3:${state.id}:${state.msr}:${state.bs}:${state.have.map(h => h.id).sort((a, b) => a - b).join(",")}`;
+}
+
+function render(g, params) {
+  const t = g.target;
+  document.title = `${t.name} – WLO Compound Planner`;
+  progress = load(progressKey(), { s: {} });
+  let h = `<div class="card"><div class="hero">${icon(t).replace('class="icon"', 'class="icon" style="width:48px;height:48px"')}
+    <div><h1>${esc(t.name)}</h1>
+    <div class="sub">Rank ${t.rank} · ${esc(t.type)}${t.subtype ? " [" + esc(t.subtype) + "]" : ""} · Bases: ${esc(bases(t))} · #${t.id}</div></div>
+    <div class="actions">
+      <a href="/api/guide.md?${params}"><button>⬇ Markdown</button></a>
+      <button onclick="window.print()">🖨 Print</button>
+      ${g.route ? `<button id="reset">↺ Reset progress</button>` : ""}
+    </div></div>`;
+  if (g.settings.have.length)
+    h += `<div class="note info">Items you provide: ${g.settings.have.map(x => esc(x.name)).join(", ")}</div>`;
+
+  if (g.direct) {
+    h += `<div class="note ok"><b>No compounding needed.</b> ${esc(g.direct.text)}.</div></div>`;
+  } else if (g.route) {
+    h += routeHead(g) + `</div>` + progressBar(g.route) + timeline(g.route) + shoppingList(g.route) + alternatives(g.route);
+  } else {
+    h += `</div>` + noRoute(g);
+  }
+  h += others(g);
+  $("#main").innerHTML = h;
+  wire(g);
+  updateProgress();
+  window.scrollTo({ top: 0 });
+}
+
+function routeHead(g) {
+  const s = g.route.summary, st = g.settings;
+  let h = `<div class="tiles">
+    <div class="tile"><div class="v">${s.steps}</div><div class="k">steps to follow</div></div>
+    <div class="tile"><div class="v">${s.actions}</div><div class="k">compounds in total</div></div>
+    <div class="tile"><div class="v">${s.unconfirmed}</div><div class="k">unconfirmed actions</div></div>
+    <div class="tile"><div class="v">${s.books}</div><div class="k">Alchemy Books</div></div>
+    <div class="tile"><div class="v">${fmt(s.gold)}g</div><div class="k">shop cost</div></div>
+    <div class="tile"><div class="v">${s.materials_total}</div><div class="k">materials (${s.materials_distinct} kinds)</div></div>
+  </div>
+  <div class="note info">Buy only shop items up to <b>Rank ${st.max_shop_rank}</b> and use them only in
+    <b>Stage 1–${st.buy_stages}</b>. From Stage ${st.buy_stages + 1} on, every step uses items you crafted (or gathered) earlier.</div>`;
+  if (s.hawaii) h += `<div class="note bad">⛔ <b>No route avoids Hawaii.</b> ${s.hawaii} material(s) are only sold in Hawaii, which is not purchasable in game right now.</div>`;
+  if (s.unconfirmed) h += `<div class="note warn">⚠ Steps marked <b>Unconfirmed</b> use wlohub formulas nobody has verified yet. Keep spare materials in case one fails.</div>`;
+  return h;
+}
+
+function progressBar(r) {
+  return `<div class="progress"><b id="pText"></b><div class="bar"><div id="pBar"></div></div>
+    <button class="primary" id="nextBtn">▶ Go to next step</button>
+    <div class="nav"><a data-jump="timeline">Timeline</a><a data-jump="shopping">Shopping list</a><a data-jump="others">Other options</a></div></div>`;
+}
+
+function timeline(r) {
+  let h = `<section class="card" id="timeline"><h2>Your step-by-step timeline</h2>
+    <p class="lead">Follow the steps in order, from Step 1 to the end. In each compound the items are listed in slot order –
+    the first one goes into <b>Slot 1 (Primary)</b>. Each compound makes 1 item, so <i>“repeat until you have N pieces”</i>
+    means doing the same compound N times. Tick <b>Done</b> as you go.</p>`;
+  if (r.books.length)
+    h += `<div class="note warn">📘 Have these Alchemy Books ready (not sold or gathered – obtain separately):
+      <b>${r.books.map(b => `${b.qty}× Alchemy Book ${b.book}`).join(", ")}</b></div>`;
+  h += `<div class="tl">` + r.timeline.map(stepCard).join("") + `</div></section>`;
+  return h;
+}
+
+function doneBox(no) {
+  return `<label class="done-box"><input type="checkbox" data-s="${no}"> Done</label>`;
+}
+
+function sentence(segs) {
+  return segs.map(x => {
+    if (x.item) return `<b>${item(x.item)}</b>`;
+    if (x.step) return stepRef(x.step);
+    return x.b ? `<b>${esc(x.t)}</b>` : esc(x.t);
+  }).join("");
+}
+
+function fromBadge(fr) {
+  const cls = { made: "info", standby: "warn", buy: "plain", gather: "ok", provided: "info", hawaii: "bad" }[fr.kind] || "plain";
+  return fr.step ? `<a class="badge ${cls}" data-step="${fr.step}">${esc(fr.text)}</a>`
+                 : `<span class="badge ${cls}">${esc(fr.text)}</span>`;
+}
+
+function stepCard(s) {
+  const f = s.formula;
+  let rows = s.slots.map(sl => `<tr><td class="slot">${sl.slot} · ${sl.role}</td>
+      <td>${icon(sl.item)}</td><td>${item(sl.item)}</td><td>${sl.item.rank}</td><td>${esc(bases(sl.item))}</td>
+      <td>${fromBadge(sl.from)}</td></tr>`).join("");
+  if (s.book) rows += `<tr><td class="slot">Book</td><td>📘</td><td>Alchemy Book ${s.book}</td><td>–</td><td>–</td>
+      <td><span class="badge warn">have it ready</span></td></tr>`;
+  const standby = s.standby.length && !s.is_target
+    ? `<div class="standby"><span class="muted">On standby after this step:</span> ${s.standby.map(x =>
+        `<a class="chip" data-step="${x.from_step}">${x.qty}× ${esc(x.item.name)}</a>`).join(" ")}</div>` : "";
+  const notes = [`formula #${f.id}`, `rank spread ${f.rank_spread}`, `stage ${s.stage}${s.buy_allowed ? " (shop items allowed)" : ""}`];
+  if (s.gold) notes.unshift(`cost of this step ${fmt(s.gold)}g`);
+  if (f.inferred === "duplicated_single_material") notes.push("wlohub lists only 1 material; assumed 2× the same material");
+  return `<div class="tl-step ${s.acquire.length ? "buys" : ""} ${s.is_target ? "target" : ""}" id="step-${s.no}">
+    <div class="tl-dot">${s.is_target ? "🎯" : s.acquire.length ? "🛒" : "⚗"}</div>
+    <div class="step-head"><span class="step-no">Step ${s.no}</span>${label(f)}${doneBox(s.no)}</div>
+    <p class="sentence">${sentence(s.instruction)}</p>
+    <details class="slots"><summary>Slot table</summary>
+    <div class="table-wrap"><table><thead><tr><th>Slot</th><th></th><th>Put in</th><th>Rank</th><th>Base</th><th>Comes from</th></tr></thead>
+    <tbody>${rows}</tbody></table></div></details>${standby}
+    <div class="muted small">${notes.join(" · ")}</div></div>`;
+}
+
+function shoppingList(r) {
+  const kinds = { provided: ["info", "You provide"], gather: ["ok", "Gather"], buy: ["plain", "Buy"], hawaii: ["bad", "Unavailable"] };
+  let h = `<details class="card" id="shopping"><summary><b>Full shopping list (optional)</b>
+    <span class="muted">– everything the timeline buys or gathers, grouped by place. Useful if you prefer to collect it all in one trip.</span></summary>`;
+  for (const grp of r.shopping) {
+    const [cls, word] = kinds[grp.kind] || ["plain", ""];
+    h += `<div class="group"><h4><span class="badge ${cls}">${word}</span> ${esc(grp.title.replace(/^(Buy at|Gather at) /, ""))}</h4><ul class="list">`;
+    for (const e of grp.items) {
+      const price = e.price ? `${fmt(e.price)}g × ${e.qty} = <b>${fmt(e.subtotal)}g</b>` : esc(e.note);
+      const alts = e.alts.length ? ` <span class="muted">(also: ${esc(e.alts.join(", "))})</span>` : "";
+      h += `<li><span class="qty">${e.qty}×</span>${icon(e.item)}<span>${item(e.item)} <span class="muted">R${e.item.rank} · ${esc(bases(e.item))}</span>${alts}</span>
+        <span class="price">${price}</span></li>`;
+    }
+    h += `</ul></div>`;
+  }
+  return h + `<div class="total">Shop total: ${fmt(r.summary.gold)}g${r.books.length ? " (plus Alchemy Books)" : ""}</div></details>`;
+}
+
+function alternatives(r) {
+  if (!r.alternatives.length) return "";
+  return `<section class="card"><h2>Other possible final steps</h2>
+    <p class="lead">Alternatives for the last step only. Click an item to open its own guide.</p>
+    ${r.alternatives.map(a => formulaLine(a.formula,
+      ` · ≈ ${a.actions} actions in total, ${a.unconfirmed} unconfirmed${a.hawaii ? `, ⛔ ${a.hawaii} Hawaii item(s)` : ""}`)).join("")}</section>`;
+}
+
+function noRoute(g) {
+  const nr = g.no_route, st = g.settings;
+  let h = `<section class="card"><h2>No route from shop &amp; gathered materials</h2>`;
+  if (nr.missing_bases.length) {
+    h += `<div class="note bad"><b>Why:</b> none of the materials you can buy (Rank ≤ ${st.max_shop_rank}, not Hawaii) or gather
+      has the primary base <b>${esc(nr.missing_bases.join(" / "))}</b>, and every recipe for this item needs it.</div><ul class="lines">`;
+    for (const bs of nr.base_sources)
+      h += bs.items.length
+        ? `<li>Shop items with primary base ${esc(bs.base)}: ${bs.items.map(x => `${item(x.item)} (R${x.item.rank}) – ${esc(x.locations.join(", "))}`).join("; ")} <span class="muted">(outside your buying rules)</span></li>`
+        : `<li>No shop or gathering spot provides a ${esc(bs.base)}-primary item at all.</li>`;
+    h += `</ul>`;
+  } else {
+    h += `<div class="note bad"><b>Why:</b> the base types exist at low rank, but no chain of known formulas climbs high enough with the materials you can buy or gather.</div>`;
+  }
+  if (nr.singles.length) {
+    h += `<h3 style="margin-top:16px">Any one of these items would unlock a route</h3>
+      <p class="lead">Get it from a drop, quest, trade or your own bag, then add it to “Items I have”.</p><ul class="list">`;
+    nr.singles.forEach((x, i) => h += `<li>${icon(x.item)}${item(x.item)} <span class="muted">R${x.item.rank}</span>
+      <span class="price">${x.actions} actions, ${x.unconfirmed} unconfirmed${x.hawaii ? `, ⛔ ${x.hawaii} Hawaii` : ""}
+      <button data-single="${i}">I have this → recalculate</button></span></li>`);
+    h += `</ul>`;
+  } else if (nr.set) {
+    h += `<h3 style="margin-top:16px">You need all ${nr.set.items.length} of these items</h3>
+      <p class="lead">No single item is enough. These are only sold outside your buying rules – get them by drop, quest, trade or from your bag.
+      With them the route is <b>${nr.set.actions}</b> compound actions (${nr.set.unconfirmed} unconfirmed).</p><ul class="list">`;
+    for (const x of nr.set.items)
+      h += `<li>${icon(x.item)}${item(x.item)} <span class="muted">R${x.item.rank} · ${esc(bases(x.item))}</span>
+        <span class="price">normally sold at ${esc(x.locations.join(", "))}</span></li>`;
+    h += `</ul><div style="margin-top:12px"><button class="primary" id="useSet">I can get these → add all and recalculate</button></div>`;
+  } else {
+    h += `<p>No combination of shop items unlocks a route. Add items you own under “Items I have” (for example the materials of a Tier 2 formula below).</p>`;
+  }
+  return h + `</section>`;
+}
+
+function others(g) {
+  const missing = f => f.missing === undefined ? "" : (f.missing.length
+    ? ` · <span style="color:var(--bad)">needs items not obtainable from shops / gathering: ${esc(f.missing.join(", "))}</span>`
+    : ` · all inputs obtainable from shops / gathering`);
+  let h = `<section class="card" id="others"><h2>Tier 2 – Other confirmed formulas</h2>`;
+  h += g.tier2.length ? g.tier2.map(f => formulaLine(f, missing(f))).join("") : `<p class="muted">None.</p>`;
+  h += `</section><section class="card"><h2>Tier 3 – Unconfirmed formulas <span class="muted">(last resort)</span></h2>`;
+  if (!g.tier3.count) h += `<p class="muted">None.</p>`;
+  else if (g.tier3.shown) h += g.tier3.formulas.length ? g.tier3.formulas.map(f => formulaLine(f, missing(f))).join("") : `<p class="muted">None.</p>`;
+  else h += `<p class="muted">${g.tier3.count} unconfirmed formula(s). Tick “Also list Tier 3” in Settings to show them.</p>`;
+  h += `</section>`;
+  if (g.risky.length)
+    h += `<section class="card"><h2 style="color:var(--bad)">⚠ Warning – confirmed but dangerous formulas</h2>
+      <div class="note bad"><b>The rank difference between these materials is greater than 2. These compounds are dangerous and highly likely to fail.</b>
+      Use them only if you accept the risk of losing the materials.</div>${g.risky.map(f => formulaLine(f)).join("")}</section>`;
+  return h;
+}
+
+// ------------------------------------------------------------ interaction
+function jumpToStep(n) {
+  const card = $(`#step-${n}`);
+  if (!card) return;
+  card.scrollIntoView({ behavior: "smooth", block: "center" });
+  card.classList.add("flash");
+  setTimeout(() => card.classList.remove("flash"), 1400);
+}
+
+function nextStep() {
+  return guide && guide.route ? guide.route.timeline.find(s => !progress.s[s.no]) : null;
+}
+
+function wire(g) {
+  const main = $("#main");
+  main.onclick = e => {
+    const a = e.target.closest("[data-item],[data-step],[data-jump]");
+    if (!a) return;
+    if (a.dataset.item) { openItem(+a.dataset.item); return; }
+    if (a.dataset.step) { jumpToStep(+a.dataset.step); return; }
+    if (a.dataset.jump) {
+      const t = $("#" + a.dataset.jump);
+      if (t.tagName === "DETAILS") t.open = true;
+      t.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+  main.onchange = e => {
+    const c = e.target;
+    if (!c.dataset.s) return;
+    progress.s[c.dataset.s] = c.checked;
+    store(progressKey(), progress);
+    updateProgress();
+  };
+  $$("[data-s]").forEach(c => c.checked = !!progress.s[c.dataset.s]);
+  const next = $("#nextBtn");
+  if (next) next.onclick = () => { const n = nextStep(); if (n) jumpToStep(n.no); };
+  const reset = $("#reset");
+  if (reset) reset.onclick = () => {
+    if (!reset.dataset.armed) { reset.dataset.armed = 1; reset.textContent = "Click again to reset"; return; }
+    progress = { s: {} }; store(progressKey(), progress);
+    render(guide, new URLSearchParams(location.hash.slice(1)));
+  };
+  $$("[data-single]").forEach(b => b.onclick = () => { addHave([g.no_route.singles[+b.dataset.single].item]); openItem(state.id); });
+  const useSet = $("#useSet");
+  if (useSet) useSet.onclick = () => { addHave(g.no_route.set.items.map(x => x.item)); openItem(state.id); };
+}
+
+function updateProgress() {
+  if (!guide || !guide.route) return;
+  const tl = guide.route.timeline;
+  let done = 0;
+  for (const s of tl) {
+    const ok = !!progress.s[s.no];
+    if (ok) done++;
+    const card = $(`#step-${s.no}`);
+    if (card) card.classList.toggle("done", ok);
+  }
+  const n = nextStep();
+  $$(".tl-step.current").forEach(c => c.classList.remove("current"));
+  if (n) $(`#step-${n.no}`).classList.add("current");
+  $("#pText").textContent = n ? `${done} / ${tl.length} steps done · next: Step ${n.no}` : `All ${tl.length} steps done 🎉`;
+  $("#nextBtn").hidden = !n;
+  $("#pBar").style.width = (100 * done / tl.length) + "%";
+}
+
+// ------------------------------------------------------------ start
+fetch("/api/info", { cache: "no-store" }).then(r => r.json()).then(i => {
+  // An outdated copy of this page (restored tab or browser cache): load the current one once.
+  if (i.version && i.version !== PAGE_VERSION) {
+    let tried = null;
+    try { tried = sessionStorage.getItem("wlo-reloaded"); sessionStorage.setItem("wlo-reloaded", i.version); } catch (e) {}
+    if (tried !== i.version) { location.replace(`/?v=${i.version}${location.hash}`); return; }
+  }
+  const m = i.meta || {}, when = (m.compounds || m.items || {}).scraped_at;
+  $("#foot").textContent = `App version ${PAGE_VERSION} · ${fmt(i.items)} items · ${fmt(i.formulas)} formulas · data from wlohub.com` +
+    (when ? ` · scraped ${when.slice(0, 10)}` : "");
+}).catch(() => {});
+readSettings();
+window.addEventListener("hashchange", run);
+run();
+</script>
+</body>
+</html>

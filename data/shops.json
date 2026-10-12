@@ -1,0 +1,2143 @@
+[
+ {
+  "id": 1,
+  "location": "Rome",
+  "item_id": 22,
+  "item_name": "Obsidian",
+  "rank": 3,
+  "type": "Material",
+  "subtype": "Rock",
+  "bases": [
+   "Rock"
+  ],
+  "price": 50
+ },
+ {
+  "id": 2,
+  "location": "Welling Village",
+  "item_id": 27,
+  "item_name": "White Clay",
+  "rank": 2,
+  "type": "Material",
+  "subtype": "Clay",
+  "bases": [
+   "White/Yellow Clay"
+  ],
+  "price": 30
+ },
+ {
+  "id": 3,
+  "location": "Holy Village",
+  "item_id": 29,
+  "item_name": "Custard Tart",
+  "rank": 4,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Wheat",
+   "Egg",
+   "Dairy Product"
+  ],
+  "price": 70
+ },
+ {
+  "id": 4,
+  "location": "Revival Isle",
+  "item_id": 33,
+  "item_name": "Rock Ax",
+  "rank": 12,
+  "type": "Weapon",
+  "subtype": "Ax",
+  "bases": [
+   "Copper",
+   "Wood"
+  ],
+  "price": 370
+ },
+ {
+  "id": 5,
+  "location": "Bangkok",
+  "item_id": 44,
+  "item_name": "Twin Claws",
+  "rank": 9,
+  "type": "Weapon",
+  "subtype": "Claw",
+  "bases": [
+   "Steel"
+  ],
+  "price": 240
+ },
+ {
+  "id": 6,
+  "location": "South Pole",
+  "item_id": 49,
+  "item_name": "Blooded Claw",
+  "rank": 13,
+  "type": "Weapon",
+  "subtype": "Claw",
+  "bases": [
+   "Steel"
+  ],
+  "price": 410
+ },
+ {
+  "id": 7,
+  "location": "Fishing Village",
+  "item_id": 50,
+  "item_name": "Poison Claw",
+  "rank": 15,
+  "type": "Weapon",
+  "subtype": "Claw",
+  "bases": [
+   "Steel"
+  ],
+  "price": 510
+ },
+ {
+  "id": 8,
+  "location": "Bangkok",
+  "item_id": 56,
+  "item_name": "Coconut",
+  "rank": 3,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Fruit"
+  ],
+  "price": 50
+ },
+ {
+  "id": 9,
+  "location": "South Pole",
+  "item_id": 66,
+  "item_name": "Ox Horn Hat",
+  "rank": 13,
+  "type": "Armor",
+  "subtype": "Head",
+  "bases": [
+   "Copper",
+   "Hard Tissue"
+  ],
+  "price": 410
+ },
+ {
+  "id": 10,
+  "location": "Kyoto",
+  "item_id": 68,
+  "item_name": "Vine Hat",
+  "rank": 14,
+  "type": "Armor",
+  "subtype": "Head",
+  "bases": [
+   "Wood",
+   "Grass"
+  ],
+  "price": 460
+ },
+ {
+  "id": 11,
+  "location": "Kyoto",
+  "item_id": 89,
+  "item_name": "Nigiri Sushi",
+  "rank": 4,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Fish and Shellfish"
+  ],
+  "price": 70
+ },
+ {
+  "id": 12,
+  "location": "South Pole",
+  "item_id": 143,
+  "item_name": "Fugu Sashimi",
+  "rank": 5,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Fish and Shellfish"
+  ],
+  "price": 100
+ },
+ {
+  "id": 13,
+  "location": "Kelan Village",
+  "item_id": 144,
+  "item_name": "Rice Wine",
+  "rank": 3,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Rice"
+  ],
+  "price": 50
+ },
+ {
+  "id": 14,
+  "location": "Inca",
+  "item_id": 150,
+  "item_name": "Hot Dog",
+  "rank": 3,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Meat"
+  ],
+  "price": 50
+ },
+ {
+  "id": 15,
+  "location": "Korea (Inchon)",
+  "item_id": 151,
+  "item_name": "Ham",
+  "rank": 3,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Meat"
+  ],
+  "price": 50
+ },
+ {
+  "id": 16,
+  "location": "Kelan Village",
+  "item_id": 153,
+  "item_name": "Bread",
+  "rank": 1,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Wheat"
+  ],
+  "price": 10
+ },
+ {
+  "id": 17,
+  "location": "Welling Village",
+  "item_id": 155,
+  "item_name": "Wholegrain Bread",
+  "rank": 2,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Wheat"
+  ],
+  "price": 30
+ },
+ {
+  "id": 18,
+  "location": "Oslya",
+  "item_id": 160,
+  "item_name": "Australian Bread",
+  "rank": 3,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Wheat"
+  ],
+  "price": 50
+ },
+ {
+  "id": 19,
+  "location": "Fishing Village",
+  "item_id": 166,
+  "item_name": "BBQ Pork Buns",
+  "rank": 5,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Meat",
+   "Wheat"
+  ],
+  "price": 110
+ },
+ {
+  "id": 20,
+  "location": "Korea (Inchon)",
+  "item_id": 168,
+  "item_name": "Shandong Buns",
+  "rank": 1,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Wheat"
+  ],
+  "price": 10
+ },
+ {
+  "id": 21,
+  "location": "Fishing Village",
+  "item_id": 170,
+  "item_name": "Super Buns",
+  "rank": 4,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Wheat"
+  ],
+  "price": 70
+ },
+ {
+  "id": 22,
+  "location": "Oslya",
+  "item_id": 171,
+  "item_name": "Meatballs",
+  "rank": 5,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Meat"
+  ],
+  "price": 100
+ },
+ {
+  "id": 23,
+  "location": "Chang' an",
+  "item_id": 182,
+  "item_name": "Meat Over Rice",
+  "rank": 6,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Rice",
+   "Meat"
+  ],
+  "price": 130
+ },
+ {
+  "id": 24,
+  "location": "Revival Isle",
+  "item_id": 192,
+  "item_name": "Fruit Cake",
+  "rank": 4,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Wheat",
+   "Vegetable",
+   "Meat",
+   "Fish and Shellfish"
+  ],
+  "price": 70
+ },
+ {
+  "id": 25,
+  "location": "Calcutta",
+  "item_id": 207,
+  "item_name": "Roast Pigeon",
+  "rank": 6,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Meat"
+  ],
+  "price": 130
+ },
+ {
+  "id": 26,
+  "location": "Cairo",
+  "item_id": 212,
+  "item_name": "Pepper Shrimp",
+  "rank": 2,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Fish and Shellfish"
+  ],
+  "price": 30
+ },
+ {
+  "id": 27,
+  "location": "Mayan Tribe",
+  "item_id": 213,
+  "item_name": "Rice Wine Shrimp",
+  "rank": 5,
+  "type": "Material",
+  "subtype": "",
+  "bases": [
+   "Fish and Shellfish"
+  ],
+  "price": 100
+ },
+ {
+  "id": 28,
+  "location": "Revival Isle",
+  "item_id": 218,
+  "item_name": "Braised Stingray",
+  "rank": 4,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Fish and Shellfish"
+  ],
+  "price": 70
+ },
+ {
+  "id": 29,
+  "location": "Fishing Village",
+  "item_id": 219,
+  "item_name": "Rice Wine Chicken",
+  "rank": 7,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Meat"
+  ],
+  "price": 170
+ },
+ {
+  "id": 30,
+  "location": "Korea (Inchon)",
+  "item_id": 234,
+  "item_name": "Fried Fugu",
+  "rank": 9,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Fish and Shellfish"
+  ],
+  "price": 240
+ },
+ {
+  "id": 31,
+  "location": "Yamataikoku",
+  "item_id": 312,
+  "item_name": "Eagle Feather",
+  "rank": 10,
+  "type": "Material",
+  "subtype": "Beast",
+  "bases": [
+   "Feather"
+  ],
+  "price": 280
+ },
+ {
+  "id": 32,
+  "location": "Athens",
+  "item_id": 326,
+  "item_name": "Fine Wood",
+  "rank": 10,
+  "type": "Material",
+  "subtype": "Wood",
+  "bases": [
+   "Wood"
+  ],
+  "price": 280
+ },
+ {
+  "id": 33,
+  "location": "Fishing Village",
+  "item_id": 331,
+  "item_name": "Qi Pao",
+  "rank": 13,
+  "type": "Armor",
+  "subtype": "Body",
+  "bases": [
+   "Flower"
+  ],
+  "price": 410
+ },
+ {
+  "id": 34,
+  "location": "Revival Isle",
+  "item_id": 344,
+  "item_name": "Silvery Earrings",
+  "rank": 9,
+  "type": "Armor",
+  "subtype": "Special",
+  "bases": [
+   "Silver"
+  ],
+  "price": 240
+ },
+ {
+  "id": 35,
+  "location": "Persia",
+  "item_id": 351,
+  "item_name": "White Rose",
+  "rank": 10,
+  "type": "Material",
+  "subtype": "Plant",
+  "bases": [
+   "Flower"
+  ],
+  "price": 280
+ },
+ {
+  "id": 36,
+  "location": "Revival Isle",
+  "item_id": 354,
+  "item_name": "Leather Armor",
+  "rank": 16,
+  "type": "Armor",
+  "subtype": "Body",
+  "bases": [
+   "Iron",
+   "Leather"
+  ],
+  "price": 560
+ },
+ {
+  "id": 37,
+  "location": "South Pole",
+  "item_id": 356,
+  "item_name": "Warm Clothes",
+  "rank": 13,
+  "type": "Armor",
+  "subtype": "Body",
+  "bases": [
+   "Flower"
+  ],
+  "price": 410
+ },
+ {
+  "id": 38,
+  "location": "Mayan Tribe",
+  "item_id": 357,
+  "item_name": "Iron Cuffs",
+  "rank": 14,
+  "type": "Armor",
+  "subtype": "Arm",
+  "bases": [
+   "Flower",
+   "Iron"
+  ],
+  "price": 460
+ },
+ {
+  "id": 39,
+  "location": "South Pole",
+  "item_id": 358,
+  "item_name": "Fur Boots",
+  "rank": 13,
+  "type": "Armor",
+  "subtype": "Shoes",
+  "bases": [
+   "Leather",
+   "Fur"
+  ],
+  "price": 410
+ },
+ {
+  "id": 40,
+  "location": "Inca",
+  "item_id": 359,
+  "item_name": "Teeth Bracers",
+  "rank": 8,
+  "type": "Armor",
+  "subtype": "Arm",
+  "bases": [
+   "Leather"
+  ],
+  "price": 200
+ },
+ {
+  "id": 41,
+  "location": "Korea (Inchon)",
+  "item_id": 371,
+  "item_name": "Silvery Ring",
+  "rank": 14,
+  "type": "Armor",
+  "subtype": "Special",
+  "bases": [
+   "Platinum"
+  ],
+  "price": 460
+ },
+ {
+  "id": 42,
+  "location": "Inca",
+  "item_id": 375,
+  "item_name": "Silvery Shoes",
+  "rank": 7,
+  "type": "Armor",
+  "subtype": "Shoes",
+  "bases": [
+   "Platinum"
+  ],
+  "price": 170
+ },
+ {
+  "id": 43,
+  "location": "South Pole",
+  "item_id": 385,
+  "item_name": "Emerald Staff",
+  "rank": 12,
+  "type": "Weapon",
+  "subtype": "Wand",
+  "bases": [
+   "Tin",
+   "Jade"
+  ],
+  "price": 370
+ },
+ {
+  "id": 44,
+  "location": "Kyoto",
+  "item_id": 387,
+  "item_name": "Warrior's Falchion",
+  "rank": 15,
+  "type": "Weapon",
+  "subtype": "Blade",
+  "bases": [
+   "Iron",
+   "Wood"
+  ],
+  "price": 510
+ },
+ {
+  "id": 45,
+  "location": "Welling Village",
+  "item_id": 391,
+  "item_name": "Bronze Sword",
+  "rank": 3,
+  "type": "Weapon",
+  "subtype": "Sword",
+  "bases": [
+   "Copper",
+   "Wood"
+  ],
+  "price": 30
+ },
+ {
+  "id": 46,
+  "location": "Fishing Village",
+  "item_id": 394,
+  "item_name": "Bronze Halberd",
+  "rank": 15,
+  "type": "Weapon",
+  "subtype": "Spear",
+  "bases": [
+   "Copper",
+   "Wood"
+  ],
+  "price": 510
+ },
+ {
+  "id": 47,
+  "location": "Oslya",
+  "item_id": 398,
+  "item_name": "Great Gloves",
+  "rank": 11,
+  "type": "Armor",
+  "subtype": "Arm",
+  "bases": [
+   "Leather"
+  ],
+  "price": 320
+ },
+ {
+  "id": 48,
+  "location": "Revival Isle",
+  "item_id": 399,
+  "item_name": "Stone Wand",
+  "rank": 9,
+  "type": "Weapon",
+  "subtype": "Wand",
+  "bases": [
+   "Rock",
+   "Wood"
+  ],
+  "price": 240
+ },
+ {
+  "id": 49,
+  "location": "Universal Island",
+  "item_id": 488,
+  "item_name": "Rectifier Line",
+  "rank": 5,
+  "type": "Manufacture",
+  "subtype": "Item",
+  "bases": [
+   "Iron"
+  ],
+  "price": 100
+ },
+ {
+  "id": 50,
+  "location": "Persia",
+  "item_id": 504,
+  "item_name": "Swallow Feather",
+  "rank": 6,
+  "type": "Material",
+  "subtype": "Beast",
+  "bases": [
+   "Feather"
+  ],
+  "price": 130
+ },
+ {
+  "id": 51,
+  "location": "Holy Village",
+  "item_id": 505,
+  "item_name": "Iron Sword",
+  "rank": 4,
+  "type": "Weapon",
+  "subtype": "Sword",
+  "bases": [
+   "Iron"
+  ],
+  "price": 70
+ },
+ {
+  "id": 52,
+  "location": "Korea (Inchon)",
+  "item_id": 518,
+  "item_name": "Big Stone Gavel",
+  "rank": 14,
+  "type": "Weapon",
+  "subtype": "Club",
+  "bases": [
+   "Rock",
+   "Grass",
+   "Wood"
+  ],
+  "price": 460
+ },
+ {
+  "id": 53,
+  "location": "Mayan Tribe",
+  "item_id": 539,
+  "item_name": "Blade Halberd",
+  "rank": 8,
+  "type": "Weapon",
+  "subtype": "Spear",
+  "bases": [
+   "Copper",
+   "Wood"
+  ],
+  "price": 200
+ },
+ {
+  "id": 54,
+  "location": "Inca",
+  "item_id": 561,
+  "item_name": "Big Cypress Stick",
+  "rank": 7,
+  "type": "Weapon",
+  "subtype": "Club",
+  "bases": [
+   "Wood"
+  ],
+  "price": 170
+ },
+ {
+  "id": 55,
+  "location": "Fishing Village",
+  "item_id": 563,
+  "item_name": "Great Sword",
+  "rank": 14,
+  "type": "Weapon",
+  "subtype": "Sword",
+  "bases": [
+   "Iron",
+   "Wood"
+  ],
+  "price": 460
+ },
+ {
+  "id": 56,
+  "location": "Calcutta",
+  "item_id": 591,
+  "item_name": "Indian Machete",
+  "rank": 11,
+  "type": "Weapon",
+  "subtype": "Blade",
+  "bases": [
+   "Iron",
+   "Wood"
+  ],
+  "price": 380
+ },
+ {
+  "id": 57,
+  "location": "Rome",
+  "item_id": 602,
+  "item_name": "Dry Clay",
+  "rank": 3,
+  "type": "Material",
+  "subtype": "Clay",
+  "bases": [
+   "Dry Clay"
+  ],
+  "price": 50
+ },
+ {
+  "id": 58,
+  "location": "Calcutta",
+  "item_id": 612,
+  "item_name": "Special Stick",
+  "rank": 11,
+  "type": "Weapon",
+  "subtype": "Wand",
+  "bases": [
+   "Tin",
+   "Quartz (Crystal)"
+  ],
+  "price": 320
+ },
+ {
+  "id": 59,
+  "location": "Cairo",
+  "item_id": 618,
+  "item_name": "Forest Staff",
+  "rank": 18,
+  "type": "Weapon",
+  "subtype": "Wand",
+  "bases": [
+   "Tin",
+   "Jade"
+  ],
+  "price": 660
+ },
+ {
+  "id": 60,
+  "location": "Calcutta",
+  "item_id": 643,
+  "item_name": "Jewel Necklace",
+  "rank": 11,
+  "type": "Armor",
+  "subtype": "Special",
+  "bases": [
+   "Gold"
+  ],
+  "price": 320
+ },
+ {
+  "id": 61,
+  "location": "Oslya",
+  "item_id": 656,
+  "item_name": "Hunting Boots",
+  "rank": 10,
+  "type": "Armor",
+  "subtype": "Shoes",
+  "bases": [
+   "Leather"
+  ],
+  "price": 280
+ },
+ {
+  "id": 62,
+  "location": "Cairo",
+  "item_id": 667,
+  "item_name": "Copper Crest",
+  "rank": 18,
+  "type": "Armor",
+  "subtype": "Head",
+  "bases": [
+   "Copper",
+   "Corundum"
+  ],
+  "price": 660
+ },
+ {
+  "id": 63,
+  "location": "Athens",
+  "item_id": 668,
+  "item_name": "Black Spear",
+  "rank": 11,
+  "type": "Weapon",
+  "subtype": "Spear",
+  "bases": [
+   "Titanium",
+   "Copper"
+  ],
+  "price": 320
+ },
+ {
+  "id": 64,
+  "location": "Athens",
+  "item_id": 669,
+  "item_name": "Black Ax",
+  "rank": 11,
+  "type": "Weapon",
+  "subtype": "Ax",
+  "bases": [
+   "Hard Tissue",
+   "Grass",
+   "Wood"
+  ],
+  "price": 320
+ },
+ {
+  "id": 65,
+  "location": "Athens",
+  "item_id": 670,
+  "item_name": "Crystal Blue Wand",
+  "rank": 9,
+  "type": "Weapon",
+  "subtype": "Wand",
+  "bases": [
+   "Quartz (Crystal)",
+   "Jade"
+  ],
+  "price": 240
+ },
+ {
+  "id": 66,
+  "location": "Athens",
+  "item_id": 671,
+  "item_name": "White Dragon Gown",
+  "rank": 15,
+  "type": "Armor",
+  "subtype": "Body",
+  "bases": [
+   "Leather",
+   "Flower"
+  ],
+  "price": 510
+ },
+ {
+  "id": 67,
+  "location": "Inca",
+  "item_id": 673,
+  "item_name": "Pure Iron Fine Sword",
+  "rank": 10,
+  "type": "Weapon",
+  "subtype": "Sword",
+  "bases": [
+   "Pure Iron"
+  ],
+  "price": 280
+ },
+ {
+  "id": 68,
+  "location": "Inca",
+  "item_id": 674,
+  "item_name": "Copper Armor",
+  "rank": 14,
+  "type": "Armor",
+  "subtype": "Body",
+  "bases": [
+   "Copper"
+  ],
+  "price": 460
+ },
+ {
+  "id": 69,
+  "location": "Chang' an",
+  "item_id": 675,
+  "item_name": "Pure Iron Saber",
+  "rank": 15,
+  "type": "Weapon",
+  "subtype": "Blade",
+  "bases": [
+   "Pure Iron",
+   "Wood"
+  ],
+  "price": 510
+ },
+ {
+  "id": 70,
+  "location": "Chang' an",
+  "item_id": 676,
+  "item_name": "Copper Cuffs",
+  "rank": 12,
+  "type": "Armor",
+  "subtype": "Arm",
+  "bases": [
+   "Flower",
+   "Copper"
+  ],
+  "price": 370
+ },
+ {
+  "id": 71,
+  "location": "Chang' an",
+  "item_id": 677,
+  "item_name": "Red Qi Pao",
+  "rank": 13,
+  "type": "Armor",
+  "subtype": "Body",
+  "bases": [
+   "Grass",
+   "Flower"
+  ],
+  "price": 410
+ },
+ {
+  "id": 72,
+  "location": "Chang' an",
+  "item_id": 678,
+  "item_name": "Yellow Boots",
+  "rank": 12,
+  "type": "Armor",
+  "subtype": "Shoes",
+  "bases": [
+   "Nylon",
+   "Fur"
+  ],
+  "price": 370
+ },
+ {
+  "id": 73,
+  "location": "Chang' an",
+  "item_id": 679,
+  "item_name": "Bright Earrings",
+  "rank": 14,
+  "type": "Armor",
+  "subtype": "Special",
+  "bases": [
+   "Quartz (Crystal)",
+   "Silver"
+  ],
+  "price": 460
+ },
+ {
+  "id": 74,
+  "location": "Bangkok",
+  "item_id": 680,
+  "item_name": "Leaf Clothes",
+  "rank": 10,
+  "type": "Armor",
+  "subtype": "Body",
+  "bases": [
+   "Leaf",
+   "Grass"
+  ],
+  "price": 280
+ },
+ {
+  "id": 75,
+  "location": "Bangkok",
+  "item_id": 681,
+  "item_name": "Wolf Bracers",
+  "rank": 16,
+  "type": "Armor",
+  "subtype": "Arm",
+  "bases": [
+   "Titanium"
+  ],
+  "price": 560
+ },
+ {
+  "id": 76,
+  "location": "Cairo",
+  "item_id": 683,
+  "item_name": "Sea Armor",
+  "rank": 18,
+  "type": "Armor",
+  "subtype": "Body",
+  "bases": [
+   "Steel",
+   "Flower"
+  ],
+  "price": 660
+ },
+ {
+  "id": 77,
+  "location": "Cairo",
+  "item_id": 684,
+  "item_name": "Demon Gloves",
+  "rank": 18,
+  "type": "Armor",
+  "subtype": "Arm",
+  "bases": [
+   "Leather",
+   "Grass"
+  ],
+  "price": 660
+ },
+ {
+  "id": 78,
+  "location": "Cairo",
+  "item_id": 685,
+  "item_name": "Iron Net Boots",
+  "rank": 17,
+  "type": "Armor",
+  "subtype": "Shoes",
+  "bases": [
+   "Iron"
+  ],
+  "price": 610
+ },
+ {
+  "id": 79,
+  "location": "Korea (Inchon)",
+  "item_id": 686,
+  "item_name": "Silvery Claw",
+  "rank": 14,
+  "type": "Weapon",
+  "subtype": "Claw",
+  "bases": [
+   "Silver"
+  ],
+  "price": 460
+ },
+ {
+  "id": 80,
+  "location": "Korea (Inchon)",
+  "item_id": 687,
+  "item_name": "Demon Gown",
+  "rank": 15,
+  "type": "Armor",
+  "subtype": "Body",
+  "bases": [
+   "Flower"
+  ],
+  "price": 510
+ },
+ {
+  "id": 81,
+  "location": "Korea (Inchon)",
+  "item_id": 688,
+  "item_name": "Net Boots",
+  "rank": 16,
+  "type": "Armor",
+  "subtype": "Shoes",
+  "bases": [
+   "Copper",
+   "Grass"
+  ],
+  "price": 560
+ },
+ {
+  "id": 82,
+  "location": "Kyoto",
+  "item_id": 689,
+  "item_name": "Ninja Suit",
+  "rank": 23,
+  "type": "Armor",
+  "subtype": "Body",
+  "bases": [
+   "Nylon",
+   "Flower"
+  ],
+  "price": 460
+ },
+ {
+  "id": 83,
+  "location": "Kyoto",
+  "item_id": 690,
+  "item_name": "Wooden Shoes",
+  "rank": 1,
+  "type": "Armor",
+  "subtype": "Shoes",
+  "bases": [
+   "Wood",
+   "Fur"
+  ],
+  "price": 460
+ },
+ {
+  "id": 84,
+  "location": "Fishing Village",
+  "item_id": 691,
+  "item_name": "Dragon Staff",
+  "rank": 14,
+  "type": "Weapon",
+  "subtype": "Wand",
+  "bases": [
+   "Wood",
+   "Magic"
+  ],
+  "price": 460
+ },
+ {
+  "id": 85,
+  "location": "Oslya",
+  "item_id": 693,
+  "item_name": "Cold Falchion",
+  "rank": 10,
+  "type": "Weapon",
+  "subtype": "Blade",
+  "bases": [
+   "Iron",
+   "Wood"
+  ],
+  "price": 280
+ },
+ {
+  "id": 86,
+  "location": "Mayan Tribe",
+  "item_id": 694,
+  "item_name": "Copper Woven Boots",
+  "rank": 10,
+  "type": "Armor",
+  "subtype": "Shoes",
+  "bases": [
+   "Steel"
+  ],
+  "price": 280
+ },
+ {
+  "id": 87,
+  "location": "Revival Isle",
+  "item_id": 695,
+  "item_name": "Water Bracers",
+  "rank": 12,
+  "type": "Armor",
+  "subtype": "Arm",
+  "bases": [
+   "Flower"
+  ],
+  "price": 370
+ },
+ {
+  "id": 88,
+  "location": "Kyoto",
+  "item_id": 716,
+  "item_name": "Cotton Clothes",
+  "rank": 14,
+  "type": "Armor",
+  "subtype": "Body",
+  "bases": [
+   "Flower",
+   "Grass"
+  ],
+  "price": 460
+ },
+ {
+  "id": 89,
+  "location": "Kyoto",
+  "item_id": 772,
+  "item_name": "Horse Shoes",
+  "rank": 15,
+  "type": "Armor",
+  "subtype": "Shoes",
+  "bases": [
+   "Leather",
+   "Fur"
+  ],
+  "price": 510
+ },
+ {
+  "id": 90,
+  "location": "Kyoto",
+  "item_id": 773,
+  "item_name": "Spirit Gloves",
+  "rank": 15,
+  "type": "Armor",
+  "subtype": "Arm",
+  "bases": [
+   "Flower",
+   "Magic",
+   "Grass"
+  ],
+  "price": 510
+ },
+ {
+  "id": 91,
+  "location": "Welling Village",
+  "item_id": 783,
+  "item_name": "Copper Material",
+  "rank": 4,
+  "type": "Material",
+  "subtype": "Mineral",
+  "bases": [
+   "Copper"
+  ],
+  "price": 70
+ },
+ {
+  "id": 92,
+  "location": "South Pole",
+  "item_id": 841,
+  "item_name": "Ammonia",
+  "rank": 6,
+  "type": "Item",
+  "subtype": "Battle",
+  "bases": [
+   "Chemical"
+  ],
+  "price": 130
+ },
+ {
+  "id": 93,
+  "location": "Hawaii",
+  "item_id": 864,
+  "item_name": "Refined Tin (R18)",
+  "rank": 18,
+  "type": "Material",
+  "subtype": "",
+  "bases": [
+   "Tin"
+  ],
+  "price": 0
+ },
+ {
+  "id": 94,
+  "location": "Rome",
+  "item_id": 904,
+  "item_name": "Delicate Wood",
+  "rank": 14,
+  "type": "Material",
+  "subtype": "Wood",
+  "bases": [
+   "Wood"
+  ],
+  "price": 460
+ },
+ {
+  "id": 95,
+  "location": "Calcutta",
+  "item_id": 905,
+  "item_name": "Fresh Water",
+  "rank": 2,
+  "type": "Material",
+  "subtype": "Water",
+  "bases": [
+   "Water (Type 2)"
+  ],
+  "price": 30
+ },
+ {
+  "id": 96,
+  "location": "Kyoto",
+  "item_id": 939,
+  "item_name": "Silk Qi Pao",
+  "rank": 16,
+  "type": "Armor",
+  "subtype": "Body",
+  "bases": [
+   "Flower",
+   "Grass"
+  ],
+  "price": 560
+ },
+ {
+  "id": 97,
+  "location": "Universal Island",
+  "item_id": 942,
+  "item_name": "Capacitance",
+  "rank": 2,
+  "type": "Manufacture",
+  "subtype": "Item",
+  "bases": [
+   "Iron"
+  ],
+  "price": 30
+ },
+ {
+  "id": 98,
+  "location": "Universal Island",
+  "item_id": 974,
+  "item_name": "Resistance",
+  "rank": 2,
+  "type": "Manufacture",
+  "subtype": "Item",
+  "bases": [
+   "Iron"
+  ],
+  "price": 30
+ },
+ {
+  "id": 99,
+  "location": "Hawaii",
+  "item_id": 1032,
+  "item_name": "Fine Grass",
+  "rank": 18,
+  "type": "Material",
+  "subtype": "Plant",
+  "bases": [
+   "Grass"
+  ],
+  "price": 0
+ },
+ {
+  "id": 100,
+  "location": "Hawaii",
+  "item_id": 1034,
+  "item_name": "Refined Gold",
+  "rank": 18,
+  "type": "Material",
+  "subtype": "Mineral",
+  "bases": [
+   "Gold"
+  ],
+  "price": 0
+ },
+ {
+  "id": 101,
+  "location": "Hawaii",
+  "item_id": 1035,
+  "item_name": "Fine Crystal",
+  "rank": 18,
+  "type": "Material",
+  "subtype": "Mineral",
+  "bases": [
+   "Quartz (Crystal)"
+  ],
+  "price": 0
+ },
+ {
+  "id": 102,
+  "location": "Hawaii",
+  "item_id": 1042,
+  "item_name": "Fine Golden Rose",
+  "rank": 18,
+  "type": "Material",
+  "subtype": "Plant",
+  "bases": [
+   "Flower"
+  ],
+  "price": 0
+ },
+ {
+  "id": 103,
+  "location": "Hawaii",
+  "item_id": 1043,
+  "item_name": "Magic Crystal Powder",
+  "rank": 18,
+  "type": "Material",
+  "subtype": "Mineral",
+  "bases": [
+   "Magic"
+  ],
+  "price": 0
+ },
+ {
+  "id": 104,
+  "location": "Hawaii",
+  "item_id": 1044,
+  "item_name": "Delicate Leather",
+  "rank": 18,
+  "type": "Material",
+  "subtype": "Beast",
+  "bases": [
+   "Leather"
+  ],
+  "price": 0
+ },
+ {
+  "id": 105,
+  "location": "Hawaii",
+  "item_id": 1045,
+  "item_name": "Fine Leaf",
+  "rank": 18,
+  "type": "Material",
+  "subtype": "Plant",
+  "bases": [
+   "Leaf"
+  ],
+  "price": 0
+ },
+ {
+  "id": 106,
+  "location": "Inca",
+  "item_id": 1046,
+  "item_name": "Protection Potion",
+  "rank": 3,
+  "type": "Item",
+  "subtype": "Battle",
+  "bases": [
+   "Chemical"
+  ],
+  "price": 50
+ },
+ {
+  "id": 107,
+  "location": "Hawaii",
+  "item_id": 1090,
+  "item_name": "Fine Nylon",
+  "rank": 18,
+  "type": "Manufacture",
+  "subtype": "Item",
+  "bases": [
+   "Nylon"
+  ],
+  "price": 0
+ },
+ {
+  "id": 108,
+  "location": "Hawaii",
+  "item_id": 1153,
+  "item_name": "Fine Log",
+  "rank": 18,
+  "type": "Material",
+  "subtype": "Wood",
+  "bases": [
+   "Wood"
+  ],
+  "price": 0
+ },
+ {
+  "id": 109,
+  "location": "Hawaii",
+  "item_id": 1154,
+  "item_name": "Refined White Silver",
+  "rank": 18,
+  "type": "Material",
+  "subtype": "Mineral",
+  "bases": [
+   "Platinum"
+  ],
+  "price": 0
+ },
+ {
+  "id": 110,
+  "location": "Hawaii",
+  "item_id": 1155,
+  "item_name": "Yueyi Rock",
+  "rank": 18,
+  "type": "Material",
+  "subtype": "Rock",
+  "bases": [
+   "Rock"
+  ],
+  "price": 0
+ },
+ {
+  "id": 111,
+  "location": "Hawaii",
+  "item_id": 1158,
+  "item_name": "Refined Silver",
+  "rank": 18,
+  "type": "Material",
+  "subtype": "Mineral",
+  "bases": [
+   "Silver"
+  ],
+  "price": 0
+ },
+ {
+  "id": 112,
+  "location": "Hawaii",
+  "item_id": 1159,
+  "item_name": "Refined Titanium",
+  "rank": 18,
+  "type": "Material",
+  "subtype": "Mineral",
+  "bases": [
+   "Titanium"
+  ],
+  "price": 0
+ },
+ {
+  "id": 113,
+  "location": "Hawaii",
+  "item_id": 1160,
+  "item_name": "Refined Hematite",
+  "rank": 18,
+  "type": "Material",
+  "subtype": "Mineral",
+  "bases": [
+   "Pure Iron"
+  ],
+  "price": 0
+ },
+ {
+  "id": 114,
+  "location": "Athens",
+  "item_id": 1207,
+  "item_name": "Turquoise Wand",
+  "rank": 9,
+  "type": "Weapon",
+  "subtype": "Wand",
+  "bases": [
+   "Corundum",
+   "Gold"
+  ],
+  "price": 240
+ },
+ {
+  "id": 115,
+  "location": "Hawaii",
+  "item_id": 1214,
+  "item_name": "Fresh Milk",
+  "rank": 3,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Dairy Product"
+  ],
+  "price": 80
+ },
+ {
+  "id": 116,
+  "location": "Hawaii",
+  "item_id": 1217,
+  "item_name": "Soyseafood Rice",
+  "rank": 28,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Fish and Shellfish"
+  ],
+  "price": 500
+ },
+ {
+  "id": 117,
+  "location": "Hawaii",
+  "item_id": 1218,
+  "item_name": "Cabbage Sauce",
+  "rank": 20,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Rice"
+  ],
+  "price": 900
+ },
+ {
+  "id": 118,
+  "location": "Hawaii",
+  "item_id": 1219,
+  "item_name": "Seafood Sauce",
+  "rank": 20,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Fish and Shellfish"
+  ],
+  "price": 900
+ },
+ {
+  "id": 119,
+  "location": "Calcutta",
+  "item_id": 1243,
+  "item_name": "Brandy",
+  "rank": 6,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Liquor"
+  ],
+  "price": 130
+ },
+ {
+  "id": 120,
+  "location": "South Pole",
+  "item_id": 1247,
+  "item_name": "Bicolor Sundaes",
+  "rank": 4,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Water (Type 1)",
+   "Fruit"
+  ],
+  "price": 70
+ },
+ {
+  "id": 121,
+  "location": "Hawaii",
+  "item_id": 1337,
+  "item_name": "Fine Hide",
+  "rank": 18,
+  "type": "Material",
+  "subtype": "Beast",
+  "bases": [
+   "Fur"
+  ],
+  "price": 0
+ },
+ {
+  "id": 122,
+  "location": "Kyoto",
+  "item_id": 1342,
+  "item_name": "Sake",
+  "rank": 8,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Liquor"
+  ],
+  "price": 200
+ },
+ {
+  "id": 123,
+  "location": "Fishing Village",
+  "item_id": 1404,
+  "item_name": "Spring Milk Tea",
+  "rank": 5,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Water (Type 1)",
+   "Vegetable"
+  ],
+  "price": 100
+ },
+ {
+  "id": 124,
+  "location": "Fishing Village",
+  "item_id": 1406,
+  "item_name": "Wonderful Noodles",
+  "rank": 7,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Wheat",
+   "Fruit",
+   "Egg"
+  ],
+  "price": 170
+ },
+ {
+  "id": 125,
+  "location": "Fishing Village",
+  "item_id": 1407,
+  "item_name": "Thousand-Leaves Cake",
+  "rank": 4,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Rice",
+   "Wheat"
+  ],
+  "price": 70
+ },
+ {
+  "id": 126,
+  "location": "Fishing Village",
+  "item_id": 1408,
+  "item_name": "Iron Buhdda",
+  "rank": 7,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Leaf",
+   "Water (Type 1)"
+  ],
+  "price": 170
+ },
+ {
+  "id": 127,
+  "location": "Fishing Village",
+  "item_id": 1651,
+  "item_name": "Granite",
+  "rank": 6,
+  "type": "Material",
+  "subtype": "Rock",
+  "bases": [
+   "Rock"
+  ],
+  "price": 130
+ },
+ {
+  "id": 128,
+  "location": "Kelan Village",
+  "item_id": 1694,
+  "item_name": "Ordinary Wood",
+  "rank": 2,
+  "type": "Material",
+  "subtype": "Wood",
+  "bases": [
+   "Wood"
+  ],
+  "price": 30
+ },
+ {
+  "id": 129,
+  "location": "Mayan Tribe",
+  "item_id": 1705,
+  "item_name": "Oak Wood",
+  "rank": 4,
+  "type": "Material",
+  "subtype": "Wood",
+  "bases": [
+   "Wood"
+  ],
+  "price": 70
+ },
+ {
+  "id": 130,
+  "location": "Yamataikoku",
+  "item_id": 2311,
+  "item_name": "Emerald",
+  "rank": 5,
+  "type": "Material",
+  "subtype": "Mineral",
+  "bases": [
+   "Corundum"
+  ],
+  "price": 100
+ },
+ {
+  "id": 131,
+  "location": "Revival Isle",
+  "item_id": 2651,
+  "item_name": "Bomb",
+  "rank": 6,
+  "type": "Item",
+  "subtype": "Battle",
+  "bases": [
+   "Saltpeter",
+   "Black Clay"
+  ],
+  "price": 130
+ },
+ {
+  "id": 132,
+  "location": "Hawaii",
+  "item_id": 2736,
+  "item_name": "Apple Berry Syrup",
+  "rank": 8,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "None"
+  ],
+  "price": 750
+ },
+ {
+  "id": 133,
+  "location": "Hawaii",
+  "item_id": 2737,
+  "item_name": "Grape Berry Syrup",
+  "rank": 9,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "None"
+  ],
+  "price": 800
+ },
+ {
+  "id": 134,
+  "location": "Hawaii",
+  "item_id": 2738,
+  "item_name": "Lemon Berry Syrup",
+  "rank": 8,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "None"
+  ],
+  "price": 800
+ },
+ {
+  "id": 135,
+  "location": "Hawaii",
+  "item_id": 2739,
+  "item_name": "Mandar Berry Syrup",
+  "rank": 9,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "None"
+  ],
+  "price": 800
+ },
+ {
+  "id": 136,
+  "location": "Mayan Tribe",
+  "item_id": 2855,
+  "item_name": "Deity Hat",
+  "rank": 6,
+  "type": "Armor",
+  "subtype": "Head",
+  "bases": [
+   "Grass"
+  ],
+  "price": 130
+ },
+ {
+  "id": 137,
+  "location": "Welling Village",
+  "item_id": 2875,
+  "item_name": "Grass Boots",
+  "rank": 3,
+  "type": "Armor",
+  "subtype": "Shoes",
+  "bases": [
+   "Grass"
+  ],
+  "price": 30
+ },
+ {
+  "id": 138,
+  "location": "Bangkok",
+  "item_id": 2886,
+  "item_name": "Gem Necklace",
+  "rank": 8,
+  "type": "Armor",
+  "subtype": "Special",
+  "bases": [
+   "Diamond"
+  ],
+  "price": 200
+ },
+ {
+  "id": 139,
+  "location": "Kelan Village",
+  "item_id": 2907,
+  "item_name": "Lauan Stick",
+  "rank": 3,
+  "type": "Weapon",
+  "subtype": "Club",
+  "bases": [
+   "Wood"
+  ],
+  "price": 30
+ },
+ {
+  "id": 140,
+  "location": "Chang' an",
+  "item_id": 3009,
+  "item_name": "Cinnamon",
+  "rank": 3,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Vegetable"
+  ],
+  "price": 50
+ },
+ {
+  "id": 141,
+  "location": "Kelan Village",
+  "item_id": 3050,
+  "item_name": "Bronze Claw",
+  "rank": 3,
+  "type": "Weapon",
+  "subtype": "Claw",
+  "bases": [
+   "Copper"
+  ],
+  "price": 30
+ },
+ {
+  "id": 142,
+  "location": "Kelan Village",
+  "item_id": 3051,
+  "item_name": "Stone Ax",
+  "rank": 2,
+  "type": "Weapon",
+  "subtype": "Ax",
+  "bases": [
+   "Copper"
+  ],
+  "price": 20
+ },
+ {
+  "id": 143,
+  "location": "Welling Village",
+  "item_id": 3061,
+  "item_name": "Headband",
+  "rank": 2,
+  "type": "Armor",
+  "subtype": "Head",
+  "bases": [
+   "Flower"
+  ],
+  "price": 30
+ },
+ {
+  "id": 144,
+  "location": "Holy Village",
+  "item_id": 3075,
+  "item_name": "Iron Sand",
+  "rank": 4,
+  "type": "Material",
+  "subtype": "Mineral",
+  "bases": [
+   "Iron"
+  ],
+  "price": 70
+ },
+ {
+  "id": 145,
+  "location": "Athens",
+  "item_id": 3077,
+  "item_name": "Big Fruit Leaf",
+  "rank": 6,
+  "type": "Material",
+  "subtype": "Plant",
+  "bases": [
+   "Leaf"
+  ],
+  "price": 130
+ },
+ {
+  "id": 146,
+  "location": "Kyoto",
+  "item_id": 3079,
+  "item_name": "Cubic Sword",
+  "rank": 5,
+  "type": "Item",
+  "subtype": "Battle",
+  "bases": [
+   "Iron"
+  ],
+  "price": 100
+ },
+ {
+  "id": 147,
+  "location": "Holy Village",
+  "item_id": 3093,
+  "item_name": "Grass Crest",
+  "rank": 6,
+  "type": "Armor",
+  "subtype": "Head",
+  "bases": [
+   "Leaf",
+   "Grass"
+  ],
+  "price": 130
+ },
+ {
+  "id": 148,
+  "location": "Holy Village",
+  "item_id": 3094,
+  "item_name": "Ghost Bracers",
+  "rank": 5,
+  "type": "Armor",
+  "subtype": "Arm",
+  "bases": [
+   "Leather",
+   "Gum"
+  ],
+  "price": 100
+ },
+ {
+  "id": 149,
+  "location": "Oslya",
+  "item_id": 3126,
+  "item_name": "Tin Staff",
+  "rank": 9,
+  "type": "Weapon",
+  "subtype": "Wand",
+  "bases": [
+   "Tin",
+   "Jade"
+  ],
+  "price": 240
+ },
+ {
+  "id": 150,
+  "location": "Cairo",
+  "item_id": 3147,
+  "item_name": "Fruit Wine",
+  "rank": 6,
+  "type": "Material",
+  "subtype": "Food",
+  "bases": [
+   "Fruit"
+  ],
+  "price": 130
+ },
+ {
+  "id": 151,
+  "location": "Holy Village",
+  "item_id": 3155,
+  "item_name": "Light Clothes",
+  "rank": 5,
+  "type": "Armor",
+  "subtype": "Body",
+  "bases": [
+   "Flower",
+   "Grass"
+  ],
+  "price": 100
+ },
+ {
+  "id": 152,
+  "location": "Chang' an",
+  "item_id": 3156,
+  "item_name": "Purple Grass",
+  "rank": 6,
+  "type": "Material",
+  "subtype": "Plant",
+  "bases": [
+   "Grass"
+  ],
+  "price": 130
+ },
+ {
+  "id": 153,
+  "location": "Welling Village",
+  "item_id": 3172,
+  "item_name": "Artificial Coat",
+  "rank": 4,
+  "type": "Armor",
+  "subtype": "Body",
+  "bases": [
+   "Leather"
+  ],
+  "price": 70
+ },
+ {
+  "id": 154,
+  "location": "Welling Village",
+  "item_id": 3184,
+  "item_name": "Wizard's Wand",
+  "rank": 4,
+  "type": "Weapon",
+  "subtype": "Wand",
+  "bases": [
+   "Wood"
+  ],
+  "price": 40
+ },
+ {
+  "id": 155,
+  "location": "Kelan Village",
+  "item_id": 3189,
+  "item_name": "Lauan",
+  "rank": 2,
+  "type": "Material",
+  "subtype": "Wood",
+  "bases": [
+   "Wood"
+  ],
+  "price": 30
+ },
+ {
+  "id": 156,
+  "location": "Holy Village",
+  "item_id": 3210,
+  "item_name": "Lauan Wood",
+  "rank": 3,
+  "type": "Material",
+  "subtype": "Wood",
+  "bases": [
+   "Wood"
+  ],
+  "price": 50
+ },
+ {
+  "id": 157,
+  "location": "Kelan Village",
+  "item_id": 3211,
+  "item_name": "Leather Garment",
+  "rank": 2,
+  "type": "Armor",
+  "subtype": "Body",
+  "bases": [
+   "Leather"
+  ],
+  "price": 30
+ },
+ {
+  "id": 158,
+  "location": "Bangkok",
+  "item_id": 3213,
+  "item_name": "Green Headdress",
+  "rank": 10,
+  "type": "Armor",
+  "subtype": "Head",
+  "bases": [
+   "Grass"
+  ],
+  "price": 280
+ },
+ {
+  "id": 159,
+  "location": "Calcutta",
+  "item_id": 3214,
+  "item_name": "Flame Shoes",
+  "rank": 10,
+  "type": "Armor",
+  "subtype": "Shoes",
+  "bases": [
+   "Pure Iron"
+  ],
+  "price": 280
+ },
+ {
+  "id": 160,
+  "location": "Kyoto",
+  "item_id": 3219,
+  "item_name": "Cypress Wood",
+  "rank": 5,
+  "type": "Material",
+  "subtype": "Wood",
+  "bases": [
+   "Wood"
+  ],
+  "price": 100
+ }
+]

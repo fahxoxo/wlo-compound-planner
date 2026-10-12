@@ -1,0 +1,9 @@
+# raw HTML page cache from the scraper (425 MB) – only needed for re-scraping
+data/_cache/
+data/scrape_log.txt
+# generated guides and exports
+guides/
+*.xlsx
+wlo_items*.csv
+__pycache__/
+*.pyc

@@ -1,0 +1,2 @@
+# The web app (wlo_app.py) only needs the Python standard library.
+# To re-scrape the data locally: pip install -r requirements-scraper.txt
