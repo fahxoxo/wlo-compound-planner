@@ -29,7 +29,6 @@ import wlo_calc
 ROOT = Path(__file__).parent
 WEB = ROOT / "web"
 ENGINE = None
-LOCK = threading.Lock()  # the engine's solver cache is not thread-safe
 APP_ID = "wlo-compound-planner"
 CLOUD = False  # set by --cloud / WLO_CLOUD / Render: public server, local-only features off
 
@@ -92,22 +91,26 @@ class Handler(BaseHTTPRequestHandler):
                                   "items": len(ENGINE.db["items"]) if ENGINE else 0,
                                   "formulas": len(ENGINE.db["compounds"]) if ENGINE else 0})
             if u.path == "/api/search":
-                with LOCK:
-                    hits = ENGINE.search(q.get("q", [""])[0], 40)
+                hits = ENGINE.search(q.get("q", [""])[0], 40)
                 return self.json([item_summary(r) for r in hits])
             if u.path in ("/api/guide", "/api/guide.md"):
                 a = guide_args(q)
                 if a["tid"] not in ENGINE.db["items"]:
                     return self.json({"error": "Unknown item"}, 404)
-                with LOCK:
-                    g = ENGINE.guide(a["tid"], a["max_shop_rank"], a["buy_stages"],
-                                     a["have"], a["show_all"])
+                # the web page loads the slow "unlock" part separately (/api/unlock)
+                g = ENGINE.guide(a["tid"], a["max_shop_rank"], a["buy_stages"],
+                                 a["have"], a["show_all"], unlock=u.path == "/api/guide.md")
                 if u.path == "/api/guide":
                     return self.json(g)
                 name = "".join(c if c.isalnum() else "_" for c in g["target"]["name"]).strip("_")
                 return self.send(200, wlo_calc.render_markdown(g), "text/markdown; charset=utf-8",
                                  {"Content-Disposition":
                                   f"attachment; filename*=UTF-8''{quote(name)}_{a['tid']}.md"})
+            if u.path == "/api/unlock":
+                a = guide_args(q)
+                if a["tid"] not in ENGINE.db["items"]:
+                    return self.json({"error": "Unknown item"}, 404)
+                return self.json(ENGINE.unlock(a["tid"], a["max_shop_rank"], a["buy_stages"], a["have"]))
             self.json({"error": "Not found"}, 404)
         except Exception as e:  # report instead of dropping the connection
             self.json({"error": f"{type(e).__name__}: {e}"}, 500)
@@ -184,7 +187,7 @@ def serve_cloud():
     global ENGINE
     port = int(os.environ.get("PORT", "10000"))
     print(f"Loading data ... (app version {VERSION})", flush=True)
-    ENGINE = wlo_calc.Engine(max_solvers=6)  # stay well inside a 512 MB free plan
+    ENGINE = wlo_calc.Engine(max_solvers=6, max_guides=150)  # stay well inside a 512 MB free plan
     server = ThreadingHTTPServer(("0.0.0.0", port), Handler)
     print(f"WLO Compound Planner listening on 0.0.0.0:{port}", flush=True)
     server.serve_forever()

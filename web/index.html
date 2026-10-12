@@ -386,7 +386,7 @@ async function run() {
   syncPanel(); saveSettings();
   const main = $("#main");
   main.innerHTML = `<div class="card center"><div class="spinner"></div><div>Calculating the best route…</div>
-    <div id="slow" class="muted" hidden>Still working – checking which items could unlock a route. This can take up to 15 seconds.</div></div>`;
+    <div id="slow" class="muted" hidden>Still working – the free server may be waking up (up to a minute after a quiet period).</div></div>`;
   const slow = setTimeout(() => { const s = $("#slow"); if (s) s.hidden = false; }, 1500);
   const p = new URLSearchParams({ id: state.id, max_shop_rank: state.msr, buy_stages: state.bs, all: state.all ? 1 : 0 });
   if (state.have.length) p.set("have", state.have.map(h => h.id).join(","));
@@ -559,6 +559,14 @@ function noRoute(g) {
   } else {
     h += `<div class="note bad"><b>Why:</b> the base types exist at low rank, but no chain of known formulas climbs high enough with the materials you can buy or gather.</div>`;
   }
+  h += `<div id="unlock">${nr.unlock_pending ? `<div class="center" style="padding:24px">
+    <div class="spinner"></div><div class="muted">Checking which items could unlock a route… (this can take up to a minute online)</div></div>`
+    : unlockHtml(nr)}</div>`;
+  return h + `</section>`;
+}
+
+function unlockHtml(nr) {
+  let h = "";
   if (nr.singles.length) {
     h += `<h3 style="margin-top:16px">Any one of these items would unlock a route</h3>
       <p class="lead">Get it from a drop, quest, trade or your own bag, then add it to “Items I have”.</p><ul class="list">`;
@@ -577,7 +585,33 @@ function noRoute(g) {
   } else {
     h += `<p>No combination of shop items unlocks a route. Add items you own under “Items I have” (for example the materials of a Tier 2 formula below).</p>`;
   }
-  return h + `</section>`;
+  return h;
+}
+
+async function loadUnlock(g) {
+  const p = new URLSearchParams({ id: state.id, max_shop_rank: state.msr, buy_stages: state.bs });
+  if (state.have.length) p.set("have", state.have.map(h => h.id).join(","));
+  const id = state.id;
+  let nr;
+  try {
+    const r = await fetch("/api/unlock?" + p, { cache: "no-store" });
+    nr = await r.json();
+    if (!r.ok) throw new Error(nr.error || r.statusText);
+  } catch (e) {
+    const box = $("#unlock");
+    if (box) box.innerHTML = `<div class="note bad">Could not check which items unlock a route: ${esc(e.message)}</div>`;
+    return;
+  }
+  if (id !== state.id || guide !== g) return;   // the user moved on
+  g.no_route = nr;
+  $("#unlock").innerHTML = unlockHtml(nr);
+  wireUnlock(g);
+}
+
+function wireUnlock(g) {
+  $$("[data-single]").forEach(b => b.onclick = () => { addHave([g.no_route.singles[+b.dataset.single].item]); openItem(state.id); });
+  const useSet = $("#useSet");
+  if (useSet) useSet.onclick = () => { addHave(g.no_route.set.items.map(x => x.item)); openItem(state.id); };
 }
 
 function others(g) {
@@ -640,9 +674,8 @@ function wire(g) {
     progress = { s: {} }; store(progressKey(), progress);
     render(guide, new URLSearchParams(location.hash.slice(1)));
   };
-  $$("[data-single]").forEach(b => b.onclick = () => { addHave([g.no_route.singles[+b.dataset.single].item]); openItem(state.id); });
-  const useSet = $("#useSet");
-  if (useSet) useSet.onclick = () => { addHave(g.no_route.set.items.map(x => x.item)); openItem(state.id); };
+  wireUnlock(g);
+  if (g.no_route && g.no_route.unlock_pending) loadUnlock(g);
 }
 
 function updateProgress() {

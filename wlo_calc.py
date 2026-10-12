@@ -34,6 +34,8 @@ import argparse
 import heapq
 import re
 import sys
+import threading
+from collections import OrderedDict
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -316,7 +318,7 @@ class GuideBuilder:
                 "location": sh["location"], "price": sh["price"]}
 
     # -- whole guide
-    def build(self, tid, show_all=False):
+    def build(self, tid, show_all=False, unlock=True):
         items, solver = self.items, self.solver
         g = {"target": self.ref(tid),
              "settings": {"max_shop_rank": self.max_shop_rank, "buy_stages": solver.K,
@@ -332,7 +334,7 @@ class GuideBuilder:
         elif solver.best(tid) is not None:
             g["route"] = self.route(tid, direct)
         else:
-            g["no_route"] = self.explain_no_route(tid)
+            g["no_route"] = self.explain_no_route(tid, unlock)
 
         tier1 = solver.final_formula(tid)
 
@@ -595,7 +597,7 @@ class GuideBuilder:
         T(".")
         return seg
 
-    def explain_no_route(self, tid):
+    def explain_no_route(self, tid, unlock=True):
         """Which base type cannot be sourced, and which items would unlock a route."""
         items, solver = self.items, self.solver
         direct = [f for f in self.db["compounds"]
@@ -612,7 +614,8 @@ class GuideBuilder:
                            if sh["bases"] and sh["bases"][0] == b})
             out["base_sources"].append({"base": b, "items": [
                 {"item": self.ref(i), "locations": shop_locs(i)} for i in srcs]})
-        if not self.rebuild:
+        out["unlock_pending"] = bool(self.rebuild) and not unlock
+        if not self.rebuild or not unlock:  # the slow part; the web app asks for it separately
             return out
 
         cands = []
@@ -876,31 +879,79 @@ def render_markdown(g):
 
 # ---------------------------------------------------------------- engine
 
-class Engine:
-    """Loads the data once and caches solvers; shared by the CLI and the web app."""
+class LRU:
+    """Small thread-safe least-recently-used cache."""
 
-    def __init__(self, data_dir=None, max_solvers=64):
+    def __init__(self, size):
+        self.size, self.data, self.lock = size, OrderedDict(), threading.Lock()
+
+    def get(self, key):
+        with self.lock:
+            if key in self.data:
+                self.data.move_to_end(key)
+                return self.data[key]
+        return None
+
+    def put(self, key, value):
+        with self.lock:
+            self.data[key] = value
+            self.data.move_to_end(key)
+            while len(self.data) > self.size:
+                self.data.popitem(last=False)
+        return value
+
+
+class Engine:
+    """
+    Loads the data once and caches solvers and finished guides; shared by the
+    CLI and the web app. Safe to call from several threads at once: nothing
+    holds a lock while computing, so a slow request never blocks a fast one.
+    """
+
+    def __init__(self, data_dir=None, max_solvers=64, max_guides=500):
         self.db = wlo_data.load(data_dir) if data_dir else wlo_data.load()
-        self._solvers = {}
-        self.max_solvers = max_solvers
+        self._solvers = LRU(max_solvers)
+        self._guides = LRU(max_guides)
+        self._unlocks = LRU(max_guides)
 
     def solver(self, max_shop_rank=14, buy_stages=2, have=()):
         key = (max_shop_rank, buy_stages, tuple(sorted(set(have))))
-        if key not in self._solvers:
-            if len(self._solvers) >= self.max_solvers:
-                self._solvers.pop(next(iter(self._solvers)))  # drop the oldest
+        hit = self._solvers.get(key)
+        if hit is None:
             raw = raw_sources(self.db, max_shop_rank, key[2])
-            self._solvers[key] = (raw, Solver(self.db, raw, buy_stages))
-        return self._solvers[key]
+            hit = self._solvers.put(key, (raw, Solver(self.db, raw, buy_stages)))
+        return hit
 
-    def guide(self, tid, max_shop_rank=14, buy_stages=2, have=(), show_all=False):
-        have = [h for h in dict.fromkeys(have) if h in self.db["items"]]
+    def _builder(self, max_shop_rank, buy_stages, have):
         raw, solver = self.solver(max_shop_rank, buy_stages, have)
 
         def rebuild(extra):
             return self.solver(max_shop_rank, buy_stages, list(have) + list(extra))[1]
 
-        return GuideBuilder(self.db, raw, solver, max_shop_rank, rebuild, have).build(tid, show_all)
+        return GuideBuilder(self.db, raw, solver, max_shop_rank, rebuild, have)
+
+    def _have(self, have):
+        return [h for h in dict.fromkeys(have) if h in self.db["items"]]
+
+    def guide(self, tid, max_shop_rank=14, buy_stages=2, have=(), show_all=False, unlock=True):
+        """unlock=False skips the slow "which items would unlock a route" search (see unlock())."""
+        have = self._have(have)
+        key = (tid, max_shop_rank, buy_stages, tuple(have), show_all, unlock)
+        hit = self._guides.get(key)
+        if hit is None:
+            hit = self._guides.put(key, self._builder(max_shop_rank, buy_stages, have)
+                                   .build(tid, show_all, unlock))
+        return hit
+
+    def unlock(self, tid, max_shop_rank=14, buy_stages=2, have=()):
+        """The slow part of a no-route guide: items that would unlock a route."""
+        have = self._have(have)
+        key = (tid, max_shop_rank, buy_stages, tuple(have))
+        hit = self._unlocks.get(key)
+        if hit is None:
+            hit = self._unlocks.put(key, self._builder(max_shop_rank, buy_stages, have)
+                                    .explain_no_route(tid, True))
+        return hit
 
     def search(self, query, limit=30):
         q = query.lower().strip()
