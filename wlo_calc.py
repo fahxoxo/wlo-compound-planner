@@ -225,8 +225,20 @@ class Solver:
         return min(options) if options else None
 
     # -- turning the choices into concrete steps
-    def plan(self, tid):
+    def final_mode(self, f):
+        """How to source the inputs of final formula f: "low" (may use purchases) or "high"."""
+        mats = [m["id"] for m in f["materials"]]
+        options = []
+        if all(m in self.L[-1] for m in mats):
+            options.append((add(self.step_cost(f), *(self.L[-1][m] for m in mats)), "low"))
+        if all(m in self.A for m in mats):
+            options.append((add(self.step_cost(f), *(self.A[m] for m in mats)), "high"))
+        return min(options)[1] if options else None
+
+    def plan(self, tid, final=None):
         """
+        final: a formula for tid to use as the last step instead of the best one.
+
         Returns (steps, shopping, depth):
           steps    [(node, formula, times, child_nodes)] in a valid order
           shopping Counter(item_id -> quantity) of raw materials
@@ -267,7 +279,13 @@ class Solver:
             memo[k] = n
             return n
 
-        root = node("A", tid)
+        if final is None:
+            root = node("A", tid)
+        else:
+            how = self.final_mode(final)
+            kids = tuple(node("L", m["id"], self.K - 1) if how == "low" else node("A", m["id"])
+                         for m in final["materials"])
+            root = make((final["id"], kids), tid, final, kids)
         depth = {}
 
         def d(n):
@@ -387,10 +405,12 @@ class GuideBuilder:
                       if f["verified"] and f["category"] == "risky"][:5]
         return g
 
-    def route(self, tid, direct):
+    def route(self, tid, direct, final=None):
+        """final: formula to use as the last step (an "Other possible final step")."""
         items, solver = self.items, self.solver
-        hard, hawaii, unconf, nsteps, nbooks, _ = solver.best(tid)
-        steps, shopping, depth = solver.plan(tid)
+        cost = solver.formula_cost(final) if final else solver.best(tid)
+        hard, hawaii, unconf, nsteps, nbooks, _ = cost
+        steps, shopping, depth = solver.plan(tid, final)
         producer, consumers = {}, defaultdict(list)
         for k, (node, f, n, kids) in enumerate(steps, 1):
             producer[node] = k
@@ -439,14 +459,16 @@ class GuideBuilder:
         timeline = self.timeline(tid, steps, depth)
 
         # alternative final steps
+        best_final = solver.final_formula(tid)
+        chosen = final or best_final
         alts = []
         for f in direct:
-            if f is solver.final_formula(tid) or not recommendable(f, items):
+            if f is chosen or not recommendable(f, items):
                 continue
             c = solver.formula_cost(f)
             if c is not None:
                 alts.append((c, f))
-        alts.sort(key=lambda a: a[0])
+        alts.sort(key=lambda a: (a[1] is not best_final, a[0]))  # the recommended one first
 
         return {
             "summary": {"actions": nsteps, "recipes": len(steps), "stages": max(depth.values()),
@@ -457,7 +479,9 @@ class GuideBuilder:
             "books": [{"book": b, "qty": q} for b, q in sorted(books.items())],
             "timeline": timeline,
             "alternatives": [{"formula": self.formula(f), "actions": c[3], "unconfirmed": c[2],
-                              "hawaii": c[1]} for c, f in alts[:3]],
+                              "hawaii": c[1], "recommended": f is best_final}
+                             for c, f in alts[:4 if final else 3]],
+            "selected_final": self.formula(final) if final else None,
             "partial": bool(hard),
             "get_elsewhere": [{"item": self.ref(i), "qty": q, "kind": self.raw[i]["fallback"],
                                "where": self.source(i)["text"]}
@@ -820,6 +844,9 @@ def render_markdown(g):
     elif g["route"]:
         r = g["route"]
         s = r["summary"]
+        if r.get("selected_final"):
+            w(f"> 🔀 **Alternative final step chosen:** {line(r['selected_final'])}")
+            w("")
         if r.get("partial"):
             w("> ⚠️ **Partial route.** No complete route exists from shop and gathered materials. "
               "This route needs these items that you must get some other way:")
@@ -1064,8 +1091,12 @@ class Engine:
     def _have(self, have):
         return [h for h in dict.fromkeys(have) if h in self.db["items"]]
 
-    def guide(self, tid, max_shop_rank=14, buy_stages=2, have=(), show_all=False, unlock=True):
-        """unlock=False skips the slow "which items would unlock a route" search (see unlock())."""
+    def guide(self, tid, max_shop_rank=14, buy_stages=2, have=(), show_all=False, unlock=True,
+              final=None):
+        """
+        unlock=False skips the slow "which items would unlock a route" search (see unlock()).
+        final: id of one of the "other possible final steps" to build the route around.
+        """
         have = self._have(have)
         key = (tid, max_shop_rank, buy_stages, tuple(have), show_all, unlock)
         hit = self._guides.get(key)
@@ -1074,7 +1105,25 @@ class Engine:
             if g["no_route"] is not None:
                 g["route"] = self.partial_route(tid, max_shop_rank, buy_stages, have)
             hit = self._guides.put(key, g)
-        return hit
+        if final in (None, "") or not hit["route"]:
+            return hit
+        fkey = key + (str(final),)
+        alt = self._guides.get(fkey)
+        if alt is None:
+            alt = self._guides.put(fkey, self.with_final(hit, tid, max_shop_rank, buy_stages, have, str(final)))
+        return alt
+
+    def with_final(self, g, tid, max_shop_rank, buy_stages, have, final):
+        """Copy of guide g whose route ends with the chosen final formula."""
+        f = next((f for f in self.db["compounds"]
+                  if str(f["id"]) == final and f["result_id"] == tid and recommendable(f, self.db["items"])), None)
+        partial = g["no_route"] is not None
+        raw, solver = self.solver(max_shop_rank, buy_stages, have, partial_for=tid if partial else None)
+        if f is None or solver.formula_cost(f) is None:
+            return dict(g, final_error="That final step can't be built with your current settings.")
+        direct = [x for x in self.db["compounds"] if x["result_id"] == tid]
+        route = GuideBuilder(self.db, raw, solver, max_shop_rank, None, have).route(tid, direct, final=f)
+        return dict(g, route=route)
 
     def partial_route(self, tid, max_shop_rank, buy_stages, have):
         """
@@ -1131,6 +1180,7 @@ def main():
                          "repeat for several. Usable at any stage.")
     ap.add_argument("--buy-stages", type=int, default=2,
                     help="bought items may only be used in Stage 1..N (default: 2)")
+    ap.add_argument("--final", help="formula id of an 'other possible final step' to build the route around")
     ap.add_argument("--out", default="guides", help="folder for the Markdown guide (default: guides)")
     ap.add_argument("--stdout", action="store_true", help="print the guide instead of saving it")
     args = ap.parse_args()
@@ -1158,7 +1208,9 @@ def main():
                      "ambiguous, use the id: " + ", ".join(f"{r['id']} {r['name']}" for r in hits[:10])))
         have.append(hits[0]["id"])
 
-    g = engine.guide(tid, args.max_shop_rank, args.buy_stages, have, args.all)
+    g = engine.guide(tid, args.max_shop_rank, args.buy_stages, have, args.all, final=args.final)
+    if g.get("final_error"):
+        print(f"--final {args.final}: {g['final_error']} Showing the recommended route.")
     text = render_markdown(g)
     if args.stdout:
         print(text)

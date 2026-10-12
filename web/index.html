@@ -180,6 +180,13 @@ details.slots > summary { cursor: pointer; color: var(--muted); font-size: 12px;
 a.badge { text-decoration: none; }
 .small { font-size: 12px; margin-top: 6px; }
 details.card > summary { cursor: pointer; }
+.alt-choice { position: relative; border-radius: 10px; cursor: pointer; margin-top: 8px; border: 1px solid transparent; }
+.alt-choice:hover, .alt-choice:focus { border-color: var(--accent); outline: none; }
+.alt-choice .formula { margin-top: 0; padding-right: 170px; }
+.alt-choice .alt-go { position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  background: var(--accent); color: #fff; border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 600; }
+@media (max-width: 600px) { .alt-choice .formula { padding-right: 10px; }
+  .alt-choice .alt-go { position: static; transform: none; display: inline-block; margin: 6px 10px 10px; } }
 @media print {
   details.slots { display: block; } details.slots > div { display: block; }
   .top, aside, .progress, .hero .actions { display: none !important; }
@@ -240,7 +247,8 @@ const fmt = n => Number(n || 0).toLocaleString("en-US");
 const bases = it => (it.bases || []).join(" / ") || "–";
 
 // ------------------------------------------------------------ state
-const state = { id: null, msr: 14, bs: 2, have: [], all: false };   // have: [{id,name,rank}]
+const state = { id: null, msr: 14, bs: 2, have: [], all: false, final: null };   // have: [{id,name,rank}]
+let scrollTo = null;   // element id to scroll to after the next render
 let guide = null, progress = null;
 
 function store(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
@@ -258,6 +266,7 @@ function saveSettings() { store("wlo-settings", { msr: state.msr, bs: state.bs, 
 function hashFor(id) {
   const p = new URLSearchParams({ id, msr: state.msr, bs: state.bs, all: state.all ? 1 : 0 });
   if (state.have.length) p.set("have", state.have.map(h => h.id).join(","));
+  if (state.final && id === state.id) p.set("final", state.final);
   return "#" + p.toString();
 }
 function readHash() {
@@ -267,12 +276,14 @@ function readHash() {
   if (p.get("msr")) state.msr = +p.get("msr");
   if (p.get("bs")) state.bs = +p.get("bs");
   state.all = p.get("all") === "1";
+  state.final = p.get("final") || null;
   const ids = (p.get("have") || "").split(",").filter(Boolean).map(Number);
   const known = Object.fromEntries(state.have.map(h => [h.id, h]));
   state.have = ids.map(i => known[i] || { id: i, name: "#" + i });
   return true;
 }
 function openItem(id) {
+  if (id !== state.id) state.final = null;   // a chosen final step belongs to one item
   const h = hashFor(id);
   if (location.hash === h) run(); else location.hash = h;
 }
@@ -390,6 +401,7 @@ async function run() {
   const slow = setTimeout(() => { const s = $("#slow"); if (s) s.hidden = false; }, 1500);
   const p = new URLSearchParams({ id: state.id, max_shop_rank: state.msr, buy_stages: state.bs, all: state.all ? 1 : 0 });
   if (state.have.length) p.set("have", state.have.map(h => h.id).join(","));
+  if (state.final) p.set("final", state.final);
   const id = state.id;
   let g;
   try {
@@ -411,7 +423,8 @@ async function run() {
 }
 
 function progressKey() {
-  return `wlo-progress3:${state.id}:${state.msr}:${state.bs}:${state.have.map(h => h.id).sort((a, b) => a - b).join(",")}`;
+  return `wlo-progress3:${state.id}:${state.msr}:${state.bs}:${state.have.map(h => h.id).sort((a, b) => a - b).join(",")}` +
+    (state.final ? `:f${state.final}` : "");
 }
 
 function render(g, params) {
@@ -441,7 +454,13 @@ function render(g, params) {
   $("#main").innerHTML = h;
   wire(g);
   updateProgress();
-  window.scrollTo({ top: 0 });
+  const target = scrollTo && $("#" + scrollTo);
+  scrollTo = null;
+  if (target) {
+    target.scrollIntoView({ block: "start" });
+    target.classList.add("flash");
+    setTimeout(() => target.classList.remove("flash"), 1400);
+  } else window.scrollTo({ top: 0 });
 }
 
 function routeHead(g) {
@@ -456,6 +475,7 @@ function routeHead(g) {
   </div>
   <div class="note info">Buy only shop items up to <b>Rank ${st.max_shop_rank}</b> and use them only in
     <b>Stage 1–${st.buy_stages}</b>. From Stage ${st.buy_stages + 1} on, every step uses items you crafted (or gathered) earlier.</div>`;
+  if (g.final_error) h += `<div class="note warn">${esc(g.final_error)} Showing the recommended route instead.</div>`;
   if (g.route.partial) h += `<div class="note bad">⚠ <b>Partial route.</b> No complete route exists from shop and gathered
     materials with your settings. The steps below build everything else from shops and gathering, and need only these items
     that you must get some other way:<ul class="lines">${g.route.get_elsewhere.map(x =>
@@ -477,6 +497,10 @@ function timeline(r) {
     whole route, and each item shows the steps that use it. Then follow the compound steps in order. In each compound the items are listed in slot order –
     the first one goes into <b>Slot 1 (Primary)</b>. Each compound makes 1 item, so <i>“repeat until you have N pieces”</i>
     means doing the same compound N times. Tick <b>Done</b> as you go.</p>`;
+  if (r.selected_final)
+    h += `<div class="note info">🔀 <b>You chose an alternative final step:</b> ${esc(r.selected_final.materials.map(m => m.name).join(" + "))}
+      ${r.selected_final.book ? `+ Alchemy Book ${r.selected_final.book}` : ""} → ${esc(r.selected_final.result.name)}.
+      <button data-final="" style="margin-left:8px">↩ Back to the recommended route</button></div>`;
   if (r.books.length)
     h += `<div class="note warn">📘 Have these Alchemy Books ready (not sold or gathered – obtain separately):
       <b>${r.books.map(b => `${b.qty}× Alchemy Book ${b.book}`).join(", ")}</b></div>`;
@@ -563,10 +587,12 @@ function shoppingList(r) {
 
 function alternatives(r) {
   if (!r.alternatives.length) return "";
-  return `<section class="card"><h2>Other possible final steps</h2>
-    <p class="lead">Alternatives for the last step only. Click an item to open its own guide.</p>
-    ${r.alternatives.map(a => formulaLine(a.formula,
-      ` · ≈ ${a.actions} actions in total, ${a.unconfirmed} unconfirmed${a.hawaii ? `, ⛔ ${a.hawaii} Hawaii item(s)` : ""}`)).join("")}</section>`;
+  return `<section class="card" id="alternatives"><h2>Other possible final steps</h2>
+    <p class="lead">Click a formula to rebuild the whole timeline around that last step.</p>
+    ${r.alternatives.map(a => `<div class="alt-choice" data-final="${a.recommended ? "" : esc(a.formula.id)}" role="button" tabindex="0"
+      title="Rebuild the timeline with this final step">
+      ${formulaLine(a.formula, ` · ≈ ${a.actions} actions in total, ${a.unconfirmed} unconfirmed${a.hawaii ? `, ⛔ ${a.hawaii} Hawaii item(s)` : ""}`)}
+      <span class="alt-go">${a.recommended ? "★ Recommended – use this" : "Use this final step"} →</span></div>`).join("")}</section>`;
 }
 
 function noRoute(g) {
@@ -665,6 +691,14 @@ function jumpToStep(n) {
   setTimeout(() => card.classList.remove("flash"), 1400);
 }
 
+function chooseFinal(id) {
+  state.final = id;
+  scrollTo = "timeline";
+  $("#timeline") && ($("#timeline").innerHTML = `<div class="center"><div class="spinner"></div>
+    <div>Rebuilding the timeline for this final step…</div></div>`);
+  openItem(state.id);
+}
+
 function nextStep() {
   return guide && guide.route ? guide.route.timeline.find(s => !progress.s[s.no]) : null;
 }
@@ -672,6 +706,8 @@ function nextStep() {
 function wire(g) {
   const main = $("#main");
   main.onclick = e => {
+    const choice = e.target.closest("[data-final]");
+    if (choice) { chooseFinal(choice.dataset.final || null); return; }
     const a = e.target.closest("[data-item],[data-step],[data-jump]");
     if (!a) return;
     if (a.dataset.item) { openItem(+a.dataset.item); return; }
@@ -681,6 +717,10 @@ function wire(g) {
       if (t.tagName === "DETAILS") t.open = true;
       t.scrollIntoView({ behavior: "smooth" });
     }
+  };
+  main.onkeydown = e => {
+    const choice = e.key === "Enter" && e.target.closest("[data-final]");
+    if (choice) chooseFinal(choice.dataset.final || null);
   };
   main.onchange = e => {
     const c = e.target;

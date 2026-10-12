@@ -60,7 +60,7 @@ def guide_args(q):
     have = [int(x) for x in q.get("have", [""])[0].split(",") if x.strip().isdigit()]
     return dict(tid=num("id", 0), max_shop_rank=num("max_shop_rank", 14),
                 buy_stages=max(1, num("buy_stages", 2)), have=have,
-                show_all=q.get("all", ["0"])[0] == "1")
+                show_all=q.get("all", ["0"])[0] == "1", final=q.get("final", [""])[0] or None)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -99,7 +99,8 @@ class Handler(BaseHTTPRequestHandler):
                     return self.json({"error": "Unknown item"}, 404)
                 # the web page loads the slow "unlock" part separately (/api/unlock)
                 g = ENGINE.guide(a["tid"], a["max_shop_rank"], a["buy_stages"],
-                                 a["have"], a["show_all"], unlock=u.path == "/api/guide.md")
+                                 a["have"], a["show_all"], unlock=u.path == "/api/guide.md",
+                                 final=a["final"])
                 if u.path == "/api/guide":
                     return self.json(g)
                 name = "".join(c if c.isalnum() else "_" for c in g["target"]["name"]).strip("_")
