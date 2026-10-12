@@ -432,7 +432,8 @@ function render(g, params) {
   if (g.direct) {
     h += `<div class="note ok"><b>No compounding needed.</b> ${esc(g.direct.text)}.</div></div>`;
   } else if (g.route) {
-    h += routeHead(g) + `</div>` + progressBar(g.route) + timeline(g.route) + shoppingList(g.route) + alternatives(g.route);
+    h += routeHead(g) + `</div>` + (g.no_route ? noRoute(g) : "") +
+      progressBar(g.route) + timeline(g.route) + shoppingList(g.route) + alternatives(g.route);
   } else {
     h += `</div>` + noRoute(g);
   }
@@ -455,6 +456,10 @@ function routeHead(g) {
   </div>
   <div class="note info">Buy only shop items up to <b>Rank ${st.max_shop_rank}</b> and use them only in
     <b>Stage 1–${st.buy_stages}</b>. From Stage ${st.buy_stages + 1} on, every step uses items you crafted (or gathered) earlier.</div>`;
+  if (g.route.partial) h += `<div class="note bad">⚠ <b>Partial route.</b> No complete route exists from shop and gathered
+    materials with your settings. The steps below build everything else from shops and gathering, and need only these items
+    that you must get some other way:<ul class="lines">${g.route.get_elsewhere.map(x =>
+      `<li><b>${x.qty}× ${item(x.item)}</b> R${x.item.rank} – ${esc(x.where)}</li>`).join("")}</ul></div>`;
   if (s.hawaii) h += `<div class="note bad">⛔ <b>No route avoids Hawaii.</b> ${s.hawaii} material(s) are only sold in Hawaii, which is not purchasable in game right now.</div>`;
   if (s.unconfirmed) h += `<div class="note warn">⚠ Steps marked <b>Unconfirmed</b> use wlohub formulas nobody has verified yet. Keep spare materials in case one fails.</div>`;
   return h;
@@ -491,7 +496,8 @@ function sentence(segs) {
 }
 
 function fromBadge(fr) {
-  const cls = { made: "info", standby: "warn", buy: "plain", gather: "ok", provided: "info", hawaii: "bad" }[fr.kind] || "plain";
+  const cls = { made: "info", standby: "warn", buy: "plain", gather: "ok", provided: "info", hawaii: "bad",
+                missing: "bad", over_limit: "warn" }[fr.kind] || "plain";
   return fr.step ? `<a class="badge ${cls}" data-step="${fr.step}">${esc(fr.text)}</a>`
                  : `<span class="badge ${cls}">${esc(fr.text)}</span>`;
 }
@@ -520,12 +526,13 @@ function stepCard(s) {
 }
 
 function shoppingList(r) {
-  const kinds = { provided: ["info", "You provide"], gather: ["ok", "Gather"], buy: ["plain", "Buy"], hawaii: ["bad", "Unavailable"] };
+  const kinds = { provided: ["info", "You provide"], gather: ["ok", "Gather"], buy: ["plain", "Buy"], hawaii: ["bad", "Unavailable"],
+                  missing: ["bad", "Get elsewhere"], over_limit: ["warn", "Above limit"] };
   let h = `<details class="card" id="shopping"><summary><b>Full shopping list (optional)</b>
     <span class="muted">– everything the timeline buys or gathers, grouped by place. Useful if you prefer to collect it all in one trip.</span></summary>`;
   for (const grp of r.shopping) {
     const [cls, word] = kinds[grp.kind] || ["plain", ""];
-    h += `<div class="group"><h4><span class="badge ${cls}">${word}</span> ${esc(grp.title.replace(/^(Buy at|Gather at) /, ""))}</h4><ul class="list">`;
+    h += `<div class="group"><h4><span class="badge ${cls}">${word}</span> ${esc(grp.title.replace(/^(Buy at|Gather at|Get elsewhere –) /, ""))}</h4><ul class="list">`;
     for (const e of grp.items) {
       const price = e.price ? `${fmt(e.price)}g × ${e.qty} = <b>${fmt(e.subtotal)}g</b>` : esc(e.note);
       const alts = e.alts.length ? ` <span class="muted">(also: ${esc(e.alts.join(", "))})</span>` : "";
@@ -547,7 +554,7 @@ function alternatives(r) {
 
 function noRoute(g) {
   const nr = g.no_route, st = g.settings;
-  let h = `<section class="card"><h2>No route from shop &amp; gathered materials</h2>`;
+  let h = `<section class="card"><h2>${g.route ? "Why there is no complete route" : "No route from shop &amp; gathered materials"}</h2>`;
   if (nr.missing_bases.length) {
     h += `<div class="note bad"><b>Why:</b> none of the materials you can buy (Rank ≤ ${st.max_shop_rank}, not Hawaii) or gather
       has the primary base <b>${esc(nr.missing_bases.join(" / "))}</b>, and every recipe for this item needs it.</div><ul class="lines">`;

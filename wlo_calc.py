@@ -41,8 +41,11 @@ from pathlib import Path
 
 import wlo_data
 
-# Cost of a route: (Hawaii-only items, unconfirmed steps, steps, books used, gold)
-# compared left to right, so any route avoiding Hawaii beats one that needs it.
+# Cost of a route, compared left to right:
+#   (hard-to-get weight, Hawaii-only items, unconfirmed steps, steps, books used, gold)
+# "Hard to get" is only used for partial routes (items that can't be bought or
+# gathered under your rules); any normal route has 0 there. Any route avoiding
+# Hawaii beats one that needs it.
 
 # Shops listed on wlohub whose items cannot actually be bought in game.
 UNAVAILABLE_SHOPS = {"Hawaii"}
@@ -67,14 +70,21 @@ def recommendable(f, items):
 
 # ---------------------------------------------------------------- sources
 
-def raw_sources(db, max_shop_rank=None, have=()):
+def raw_sources(db, max_shop_rank=None, have=(), fallback=False, exclude=()):
     """
     item_id -> {"gold", "unavailable", "anytime", "provided", "shops", "spots"}
     gold: cheapest price (0 if gatherable or provided). unavailable: only sold
     in UNAVAILABLE_SHOPS. anytime: gathered or provided by the player, so it
     may be used at any stage. have: item ids the player supplies themselves.
+
+    fallback=True (partial routes): every other item becomes a raw material
+    you must get elsewhere – "over_limit" if a normal shop sells it above your
+    rank limit, else "missing" (drop, quest, trade). Their "weight" (2^(rank/4),
+    x2 for missing) is minimised first, so the route needs as few and as
+    low-rank of them as possible. exclude: items never treated that way (the target).
     """
-    src = defaultdict(lambda: {"shops": [], "spots": [], "provided": False, "note": ""})
+    src = defaultdict(lambda: {"shops": [], "spots": [], "provided": False, "note": "",
+                               "fallback": None, "weight": 0})
     for iid in have:
         src[iid]["provided"] = True
     for iid, note in db.get("self_supplied", {}).items():  # from knowledge/shortcuts.json
@@ -92,6 +102,18 @@ def raw_sources(db, max_shop_rank=None, have=()):
         v["anytime"] = bool(v["spots"]) or v["provided"]
         v["unavailable"] = not v["anytime"] and v["shops"][0]["location"] in UNAVAILABLE_SHOPS
         v["gold"] = 0 if v["anytime"] else (v["shops"][0]["price"] or 0)
+    if fallback:
+        for iid, it in db["items"].items():
+            if iid in src or iid in exclude:
+                continue
+            shops = sorted((sh for sh in db["shops"] if sh["item_id"] == iid
+                            and sh["location"] not in UNAVAILABLE_SHOPS), key=lambda sh: sh["price"] or 0)
+            # grows steeply with rank: many low-rank pieces beat one high-rank finished item
+            weight = round(2 ** ((it["rank"] or 50) / 4))
+            src[iid] = {"shops": shops, "spots": [], "provided": False, "note": "", "anytime": True,
+                        "unavailable": False, "gold": 0,
+                        "fallback": "over_limit" if shops else "missing",
+                        "weight": weight if shops else weight * 2}
     return dict(src)
 
 
@@ -107,7 +129,8 @@ class Solver:
       L[j][id]  best way to hold the item within j stages, purchases allowed
                 (j = 0: bought or gathered directly)
       A[id]     crafted or gathered (never bought directly), any stage
-    Costs are compared as (Hawaii-only items, unconfirmed, steps, books, gold).
+    Costs are compared as (hard-to-get weight, Hawaii-only items, unconfirmed,
+    steps, books, gold).
     """
 
     def __init__(self, db, raw, buy_stages=2):
@@ -123,10 +146,11 @@ class Solver:
 
     @staticmethod
     def step_cost(f):
-        return (0, 0 if f["verified"] else 1, 1, 1 if f["book"] else 0, 0)
+        return (0, 0, 0 if f["verified"] else 1, 1, 1 if f["book"] else 0, 0)
 
     def _levels(self):
-        base = {i: (1 if s["unavailable"] else 0, 0, 0, 0, s["gold"]) for i, s in self.raw.items()}
+        base = {i: (s.get("weight", 0), 1 if s["unavailable"] else 0, 0, 0, 0, s["gold"])
+                for i, s in self.raw.items()}
         self.L, self.Lchoice = [base], [{i: None for i in base}]
         for _ in range(1, self.K):
             prev = self.L[-1]
@@ -152,7 +176,7 @@ class Solver:
 
         for i, s in self.raw.items():
             if s["anytime"]:
-                offer(i, (0, 0, 0, 0, 0), ("gather", None))
+                offer(i, (s.get("weight", 0), 0, 0, 0, 0, 0), ("gather", None))
         for f in self.formulas:  # last stage that may still use purchases
             if all(m["id"] in low for m in f["materials"]):
                 offer(f["result_id"], add(self.step_cost(f), *(low[m["id"]] for m in f["materials"])),
@@ -307,6 +331,12 @@ class GuideBuilder:
         s = self.raw[iid]
         if s["provided"]:
             return {"kind": "provided", "text": "You provide", "note": s.get("note", "")}
+        if s.get("fallback") == "missing":
+            return {"kind": "missing", "text": "Get elsewhere (drop, quest or trade)"}
+        if s.get("fallback") == "over_limit":
+            sh = s["shops"][0]
+            return {"kind": "over_limit", "text": f"Bought – {sh['location']} (above your rank limit)",
+                    "location": sh["location"], "price": sh["price"]}
         if s["spots"]:
             c = s["spots"][0]
             xy = f" X {c['x']}, Y {c['y']}" if c["x"] is not None else ""
@@ -357,7 +387,7 @@ class GuideBuilder:
 
     def route(self, tid, direct):
         items, solver = self.items, self.solver
-        hawaii, unconf, nsteps, nbooks, _ = solver.best(tid)
+        hard, hawaii, unconf, nsteps, nbooks, _ = solver.best(tid)
         steps, shopping, depth = solver.plan(tid)
         producer, consumers = {}, defaultdict(list)
         for k, (node, f, n, kids) in enumerate(steps, 1):
@@ -370,7 +400,11 @@ class GuideBuilder:
         gold = 0
         for iid, qty in shopping.items():
             s, src = self.raw[iid], self.source(iid)
-            if src["kind"] == "provided":
+            if src["kind"] == "missing":
+                key = (-1, "missing", "Get elsewhere – not sold or gathered (drop, quest or trade)")
+            elif src["kind"] == "over_limit":
+                key = (4, "over_limit", f"Buy at {src['location']} – above your shop-rank limit")
+            elif src["kind"] == "provided":
                 key = (0, "provided", "Items you provide yourself (owned, drop, quest or trade)")
             elif src["kind"] == "gather":
                 xy = f" (X {src['x']}, Y {src['y']})" if src["x"] is not None else ""
@@ -384,7 +418,7 @@ class GuideBuilder:
                      "alts": [c["location"] for c in s["spots"][1:3]]
                      + [sh["location"] for sh in s["shops"][(0 if s["anytime"] else 1):3]
                         if sh["location"] not in UNAVAILABLE_SHOPS]}
-            if src["kind"] == "buy":
+            if src["kind"] in ("buy", "over_limit"):
                 if src["price"]:
                     entry.update(price=src["price"], subtotal=src["price"] * qty)
                     gold += src["price"] * qty
@@ -420,8 +454,14 @@ class GuideBuilder:
             "shopping": shopping_groups,
             "books": [{"book": b, "qty": q} for b, q in sorted(books.items())],
             "timeline": timeline,
-            "alternatives": [{"formula": self.formula(f), "actions": c[2], "unconfirmed": c[1],
-                              "hawaii": c[0]} for c, f in alts[:3]],
+            "alternatives": [{"formula": self.formula(f), "actions": c[3], "unconfirmed": c[2],
+                              "hawaii": c[1]} for c, f in alts[:3]],
+            "partial": bool(hard),
+            "get_elsewhere": [{"item": self.ref(i), "qty": q, "kind": self.raw[i]["fallback"],
+                               "where": self.source(i)["text"]}
+                              for i, q in sorted(shopping.items(),
+                                                 key=lambda kv: -(self.raw[kv[0]].get("weight", 0)))
+                              if self.raw[i].get("fallback")],
         }
 
     def timeline(self, tid, steps, depth):
@@ -520,11 +560,11 @@ class GuideBuilder:
                     place += f", via {src['via']}"
                 groups[key] = {"kind": src["kind"], "place": place, "items": [],
                                "note": src.get("note", "")}
-            price = src.get("price") if src["kind"] == "buy" else None
+            price = src.get("price") if src["kind"] in ("buy", "over_limit") else None
             groups[key]["items"].append({"item": self.ref(iid), "qty": qty, "price": price,
                                          "subtotal": price * qty if price else None})
             gold += price * qty if price else 0
-        order = {"provided": 0, "gather": 1, "buy": 2, "hawaii": 3}
+        order = {"missing": -1, "provided": 0, "gather": 1, "buy": 2, "hawaii": 3, "over_limit": 4}
         return sorted(groups.values(), key=lambda g: (order[g["kind"]], g["place"])), gold
 
     @staticmethod
@@ -549,6 +589,11 @@ class GuideBuilder:
 
         for k, g in enumerate(st["acquire"]):
             first = k == 0
+            if g["kind"] == "missing":
+                T("Get " if first else ", then get ")
+                listing(g["items"])
+                T(" elsewhere (⚠ not sold or gathered – drop, quest or trade)")
+                continue
             if g["kind"] == "provided":
                 T("Take " if first else ", then take ")
                 listing(g["items"])
@@ -562,6 +607,8 @@ class GuideBuilder:
             listing(g["items"])
             if g["kind"] == "hawaii":
                 T(" (⛔ not purchasable in game right now)")
+            if g["kind"] == "over_limit":
+                T(" (above your shop-rank limit)")
         if st["acquire"]:
             T(". ")
 
@@ -633,7 +680,7 @@ class GuideBuilder:
             if best is not None:
                 found.append((best, c))
         found.sort()
-        out["singles"] = [{"item": self.ref(c), "actions": b[2], "unconfirmed": b[1], "hawaii": b[0]}
+        out["singles"] = [{"item": self.ref(c), "actions": b[3], "unconfirmed": b[2], "hawaii": b[1]}
                           for b, c in found[:5]]
         if not found:
             need = self.minimal_set(tid)
@@ -641,7 +688,7 @@ class GuideBuilder:
                 best = self.rebuild(need).best(tid)
                 out["set"] = {"items": [{"item": self.ref(i), "locations": shop_locs(i)} for i in
                                         sorted(need, key=lambda i: (items[i]["rank"] or 0, self.name(i)))],
-                              "actions": best[2], "unconfirmed": best[1]}
+                              "actions": best[3], "unconfirmed": best[2]}
         return out
 
     def minimal_set(self, tid):
@@ -711,6 +758,12 @@ def render_markdown(g):
     elif g["route"]:
         r = g["route"]
         s = r["summary"]
+        if r.get("partial"):
+            w("> ⚠️ **Partial route.** No complete route exists from shop and gathered materials. "
+              "This route needs these items that you must get some other way:")
+            for x in r["get_elsewhere"]:
+                w(f"> - {x['qty']}× **{x['item']['name']}** (R{x['item']['rank']}) – {x['where']}")
+            w("")
         w("| Summary | |")
         w("|---|---|")
         w(f"| Steps to follow | **{s['steps']}** |")
@@ -914,11 +967,12 @@ class Engine:
         self._guides = LRU(max_guides)
         self._unlocks = LRU(max_guides)
 
-    def solver(self, max_shop_rank=14, buy_stages=2, have=()):
-        key = (max_shop_rank, buy_stages, tuple(sorted(set(have))))
+    def solver(self, max_shop_rank=14, buy_stages=2, have=(), partial_for=None):
+        key = (max_shop_rank, buy_stages, tuple(sorted(set(have))), partial_for)
         hit = self._solvers.get(key)
         if hit is None:
-            raw = raw_sources(self.db, max_shop_rank, key[2])
+            raw = raw_sources(self.db, max_shop_rank, key[2], fallback=partial_for is not None,
+                              exclude=(partial_for,))
             hit = self._solvers.put(key, (raw, Solver(self.db, raw, buy_stages)))
         return hit
 
@@ -939,9 +993,22 @@ class Engine:
         key = (tid, max_shop_rank, buy_stages, tuple(have), show_all, unlock)
         hit = self._guides.get(key)
         if hit is None:
-            hit = self._guides.put(key, self._builder(max_shop_rank, buy_stages, have)
-                                   .build(tid, show_all, unlock))
+            g = self._builder(max_shop_rank, buy_stages, have).build(tid, show_all, unlock)
+            if g["no_route"] is not None:
+                g["route"] = self.partial_route(tid, max_shop_rank, buy_stages, have)
+            hit = self._guides.put(key, g)
         return hit
+
+    def partial_route(self, tid, max_shop_rank, buy_stages, have):
+        """
+        Best route when no full one exists: everything else from shops / gathering,
+        plus as few (and as low-rank) items as possible that you must get elsewhere.
+        """
+        raw, solver = self.solver(max_shop_rank, buy_stages, have, partial_for=tid)
+        if solver.best(tid) is None:
+            return None
+        direct = [f for f in self.db["compounds"] if f["result_id"] == tid]
+        return GuideBuilder(self.db, raw, solver, max_shop_rank, None, have).route(tid, direct)
 
     def unlock(self, tid, max_shop_rank=14, buy_stages=2, have=()):
         """The slow part of a no-route guide: items that would unlock a route."""
