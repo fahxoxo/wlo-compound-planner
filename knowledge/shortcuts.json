@@ -32,6 +32,8 @@
     {"item": "Demon Jade Stone", "source": "from your own inventory",
      "note": "Magic R21 – your source for Magic-type materials"},
     {"item": "Wolf Tooth", "source": "from your own inventory",
-     "note": "You make it by compounding beforehand"}
+     "note": "You make it by compounding beforehand"},
+    {"item": "Delicate White Jade", "source": "from your own inventory",
+     "note": "Jade R10 – crafted inside your house; your source for Jade-type materials"}
   ]
 }
