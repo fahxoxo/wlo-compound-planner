@@ -180,6 +180,12 @@ details.slots > summary { cursor: pointer; color: var(--muted); font-size: 12px;
 a.badge { text-decoration: none; }
 .small { font-size: 12px; margin-top: 6px; }
 details.card > summary { cursor: pointer; }
+.xgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px; }
+@media (max-width: 700px) { .xgrid { grid-template-columns: 1fr; } }
+.xgrid h4 { margin: 0 0 6px; }
+.xrow { display: flex; gap: 8px; align-items: center; padding: 4px 6px; border-radius: 6px; cursor: pointer; flex-wrap: wrap; }
+.xrow:hover { background: var(--panel-2); }
+.xrow input:checked ~ b { text-decoration: line-through; color: var(--bad); }
 .alt-choice { position: relative; border-radius: 10px; cursor: pointer; margin-top: 8px; border: 1px solid transparent; }
 .alt-choice:hover, .alt-choice:focus { border-color: var(--accent); outline: none; }
 .alt-choice .formula { margin-top: 0; padding-right: 170px; }
@@ -227,6 +233,12 @@ details.card > summary { cursor: pointer; }
         </div>
         <small>These can be used at any stage and are not bought.</small>
       </div>
+      <div class="field">
+        <label>Excluded maps &amp; items</label>
+        <div id="exChips" class="chips"></div>
+        <small>Never used in any route – e.g. a map closed for maintenance or an item removed from the game.
+        Tick them in the “Maps &amp; items in this route” list.</small>
+      </div>
       <div class="field check">
         <input id="all" type="checkbox"><label for="all" style="margin:0;font-weight:400">Also list Tier 3 (unconfirmed) formulas</label>
       </div>
@@ -247,7 +259,8 @@ const fmt = n => Number(n || 0).toLocaleString("en-US");
 const bases = it => (it.bases || []).join(" / ") || "–";
 
 // ------------------------------------------------------------ state
-const state = { id: null, msr: 14, bs: 2, have: [], all: false, final: null };   // have: [{id,name,rank}]
+const state = { id: null, msr: 14, bs: 2, have: [], all: false, final: null,
+                xl: [], xi: [] };   // have / xi: [{id,name,rank}], xl: excluded map names
 let scrollTo = null;   // element id to scroll to after the next render
 let guide = null, progress = null;
 
@@ -259,14 +272,24 @@ function readSettings() {
   if (s.msr) state.msr = s.msr;
   if (s.bs) state.bs = s.bs;
   if (Array.isArray(s.have)) state.have = s.have;
+  if (Array.isArray(s.xl)) state.xl = s.xl;
+  if (Array.isArray(s.xi)) state.xi = s.xi;
   state.all = !!s.all;
 }
-function saveSettings() { store("wlo-settings", { msr: state.msr, bs: state.bs, have: state.have, all: state.all }); }
+function saveSettings() {
+  store("wlo-settings", { msr: state.msr, bs: state.bs, have: state.have, all: state.all, xl: state.xl, xi: state.xi });
+}
+function exParams(p) {
+  if (state.xl.length) p.set("xloc", state.xl.join("|"));
+  if (state.xi.length) p.set("xitem", state.xi.map(x => x.id).join(","));
+  return p;
+}
 
 function hashFor(id) {
   const p = new URLSearchParams({ id, msr: state.msr, bs: state.bs, all: state.all ? 1 : 0 });
   if (state.have.length) p.set("have", state.have.map(h => h.id).join(","));
   if (state.final && id === state.id) p.set("final", state.final);
+  exParams(p);
   return "#" + p.toString();
 }
 function readHash() {
@@ -277,6 +300,9 @@ function readHash() {
   if (p.get("bs")) state.bs = +p.get("bs");
   state.all = p.get("all") === "1";
   state.final = p.get("final") || null;
+  state.xl = (p.get("xloc") || "").split("|").filter(Boolean);
+  const knownX = Object.fromEntries(state.xi.map(x => [x.id, x]));
+  state.xi = (p.get("xitem") || "").split(",").filter(Boolean).map(Number).map(i => knownX[i] || { id: i, name: "#" + i });
   const ids = (p.get("have") || "").split(",").filter(Boolean).map(Number);
   const known = Object.fromEntries(state.have.map(h => [h.id, h]));
   state.have = ids.map(i => known[i] || { id: i, name: "#" + i });
@@ -291,10 +317,27 @@ function openItem(id) {
 // ------------------------------------------------------------ settings panel
 function syncPanel() {
   $("#msr").value = state.msr; $("#bs").value = state.bs; $("#all").checked = state.all;
+  syncExclusions();
   $("#haveChips").innerHTML = state.have.length ? state.have.map(h =>
     `<span class="chip">${esc(h.name)}${h.rank != null ? " (R" + h.rank + ")" : ""}<button title="Remove" data-rm="${h.id}">×</button></span>`
   ).join("") : `<span class="muted">None</span>`;
 }
+function syncExclusions() {
+  const chips = state.xl.map(l => `<span class="chip">🗺 ${esc(l)}<button title="Allow again" data-unxl="${esc(l)}">×</button></span>`)
+    .concat(state.xi.map(x => `<span class="chip">📦 ${esc(x.name)}<button title="Allow again" data-unxi="${x.id}">×</button></span>`));
+  $("#exChips").innerHTML = chips.length ? chips.join("") +
+    `<button class="chip" id="exClear" style="border:none;cursor:pointer">clear all</button>` : `<span class="muted">None</span>`;
+}
+$("#exChips").addEventListener("click", e => {
+  const t = e.target;
+  if (t.dataset.unxl !== undefined) state.xl = state.xl.filter(l => l !== t.dataset.unxl);
+  else if (t.dataset.unxi) state.xi = state.xi.filter(x => x.id !== +t.dataset.unxi);
+  else if (t.id === "exClear") { state.xl = []; state.xi = []; }
+  else return;
+  state.final = null;
+  saveSettings(); syncExclusions();
+  if (state.id) openItem(state.id);
+});
 $("#haveChips").addEventListener("click", e => {
   const id = e.target.dataset.rm;
   if (!id) return;
@@ -402,6 +445,7 @@ async function run() {
   const p = new URLSearchParams({ id: state.id, max_shop_rank: state.msr, buy_stages: state.bs, all: state.all ? 1 : 0 });
   if (state.have.length) p.set("have", state.have.map(h => h.id).join(","));
   if (state.final) p.set("final", state.final);
+  exParams(p);
   const id = state.id;
   let g;
   try {
@@ -417,6 +461,7 @@ async function run() {
   clearTimeout(slow);
   if (id !== state.id) return;                     // a newer request is running
   state.have = g.settings.have.map(h => ({ id: h.id, name: h.name, rank: h.rank }));
+  state.xi = (g.settings.exclude_items || []).map(h => ({ id: h.id, name: h.name, rank: h.rank }));
   syncPanel(); saveSettings();
   guide = g;
   render(g, p);
@@ -424,7 +469,8 @@ async function run() {
 
 function progressKey() {
   return `wlo-progress3:${state.id}:${state.msr}:${state.bs}:${state.have.map(h => h.id).sort((a, b) => a - b).join(",")}` +
-    (state.final ? `:f${state.final}` : "");
+    (state.final ? `:f${state.final}` : "") +
+    (state.xl.length || state.xi.length ? `:x${state.xl.join("|")}/${state.xi.map(x => x.id).join(",")}` : "");
 }
 
 function render(g, params) {
@@ -445,10 +491,10 @@ function render(g, params) {
   if (g.direct) {
     h += `<div class="note ok"><b>No compounding needed.</b> ${esc(g.direct.text)}.</div></div>`;
   } else if (g.route) {
-    h += routeHead(g) + `</div>` + (g.no_route ? noRoute(g) : "") +
+    h += routeHead(g) + `</div>` + excludePanel(g) + (g.no_route ? noRoute(g) : "") +
       progressBar(g.route) + timeline(g.route) + shoppingList(g.route) + alternatives(g.route);
   } else {
-    h += `</div>` + noRoute(g);
+    h += `</div>` + excludePanel(g) + noRoute(g);
   }
   h += others(g);
   $("#main").innerHTML = h;
@@ -475,6 +521,9 @@ function routeHead(g) {
   </div>
   <div class="note info">Buy only shop items up to <b>Rank ${st.max_shop_rank}</b> and use them only in
     <b>Stage 1–${st.buy_stages}</b>. From Stage ${st.buy_stages + 1} on, every step uses items you crafted (or gathered) earlier.</div>`;
+  if (g.settings.exclude_locations.length || g.settings.exclude_items.length)
+    h += `<div class="note info">🚫 This route avoids: ${[...g.settings.exclude_locations.map(l => "🗺 " + esc(l)),
+      ...g.settings.exclude_items.map(x => "📦 " + esc(x.name))].join(", ")}</div>`;
   if (g.final_error) h += `<div class="note warn">${esc(g.final_error)} Showing the recommended route instead.</div>`;
   if (g.route.partial) h += `<div class="note bad">⚠ <b>Partial route.</b> No complete route exists from shop and gathered
     materials with your settings. The steps below build everything else from shops and gathering, and need only these items
@@ -485,10 +534,54 @@ function routeHead(g) {
   return h;
 }
 
+function excludePanel(g) {
+  const r = g.route;
+  const maps = new Map(), items = new Map();
+  for (const l of state.xl) maps.set(l, { name: l, note: "excluded", checked: true });
+  for (const x of state.xi) items.set(x.id, { item: x, note: "excluded", checked: true });
+  if (r) {
+    for (const s of r.timeline) {
+      if (s.kind === "trip") {
+        const grp = s.group;
+        if (grp.location && !maps.has(grp.location))
+          maps.set(grp.location, { name: grp.location, note: `${grp.kind === "gather" ? "gather" : "buy"} ${grp.items.length} item(s) – Step ${s.no}` });
+        for (const e of grp.items)
+          if (!items.has(e.item.id)) items.set(e.item.id, { item: e.item, note: `${e.qty}× ${grp.kind === "gather" ? "gathered" : grp.kind === "provided" ? "from your bag" : grp.kind === "missing" ? "get elsewhere" : "bought"} – Step ${s.no}` });
+      } else if (!s.is_target && !items.has(s.result.id)) {
+        items.set(s.result.id, { item: s.result, note: `${s.times}× crafted – Step ${s.no}` });
+      }
+    }
+  }
+  if (!maps.size && !items.size) return "";
+  const mapRows = [...maps.values()].map(m => `<label class="xrow"><input type="checkbox" data-xl="${esc(m.name)}" ${m.checked ? "checked" : ""}>
+    🗺 <b>${esc(m.name)}</b> <span class="muted">${esc(m.note)}</span></label>`).join("");
+  const itemRows = [...items.values()].map(x => `<label class="xrow"><input type="checkbox" data-xi="${x.item.id}"
+    data-name="${esc(x.item.name)}" data-rank="${x.item.rank ?? ""}" ${x.checked ? "checked" : ""}>
+    ${x.item.icon ? icon(x.item) : "📦"} <b>${esc(x.item.name)}</b> <span class="muted">${x.item.rank != null ? "R" + x.item.rank + " · " : ""}${esc(x.note)}</span></label>`).join("");
+  return `<details class="card" id="exclude" ${state.xl.length || state.xi.length ? "open" : ""}>
+    <summary><b>Maps &amp; items in this route</b> <span class="muted">– tick any map you can't visit (e.g. closed for maintenance)
+    or item you can't get, then recalculate for a route that avoids them completely.</span></summary>
+    <div class="xgrid"><div><h4>Maps (${maps.size})</h4>${mapRows || '<p class="muted">None</p>'}</div>
+    <div><h4>Items (${items.size})</h4>${itemRows || '<p class="muted">None</p>'}</div></div>
+    <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <button class="primary" id="exApply">↻ Recalculate without the ticked maps &amp; items</button>
+      <span class="muted small" id="exCount"></span></div></details>`;
+}
+
+function applyExclusions() {
+  state.xl = $$("[data-xl]").filter(c => c.checked).map(c => c.dataset.xl);
+  state.xi = $$("[data-xi]").filter(c => c.checked).map(c => ({ id: +c.dataset.xi, name: c.dataset.name,
+    rank: c.dataset.rank === "" ? null : +c.dataset.rank }));
+  state.final = null;   // the chosen final step may no longer exist
+  scrollTo = "timeline";
+  saveSettings();
+  openItem(state.id);
+}
+
 function progressBar(r) {
   return `<div class="progress"><b id="pText"></b><div class="bar"><div id="pBar"></div></div>
     <button class="primary" id="nextBtn">▶ Go to next step</button>
-    <div class="nav"><a data-jump="timeline">Timeline</a><a data-jump="shopping">Shopping list</a><a data-jump="others">Other options</a></div></div>`;
+    <div class="nav"><a data-jump="exclude">Maps &amp; items</a><a data-jump="timeline">Timeline</a><a data-jump="shopping">Shopping list</a><a data-jump="others">Other options</a></div></div>`;
 }
 
 function timeline(r) {
@@ -641,6 +734,7 @@ function unlockHtml(nr) {
 async function loadUnlock(g) {
   const p = new URLSearchParams({ id: state.id, max_shop_rank: state.msr, buy_stages: state.bs });
   if (state.have.length) p.set("have", state.have.map(h => h.id).join(","));
+  exParams(p);
   const id = state.id;
   let nr;
   try {
@@ -730,6 +824,16 @@ function wire(g) {
     updateProgress();
   };
   $$("[data-s]").forEach(c => c.checked = !!progress.s[c.dataset.s]);
+  const exApply = $("#exApply");
+  if (exApply) {
+    exApply.onclick = applyExclusions;
+    const count = () => {
+      const n = $$("[data-xl],[data-xi]").filter(c => c.checked).length;
+      $("#exCount").textContent = n ? `${n} ticked` : "nothing ticked – recalculating gives the normal route";
+    };
+    $("#exclude").addEventListener("change", count);
+    count();
+  }
   const next = $("#nextBtn");
   if (next) next.onclick = () => { const n = nextStep(); if (n) jumpToStep(n.no); };
   const reset = $("#reset");

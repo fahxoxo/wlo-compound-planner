@@ -70,7 +70,7 @@ def recommendable(f, items):
 
 # ---------------------------------------------------------------- sources
 
-def raw_sources(db, max_shop_rank=None, have=(), fallback=False, exclude=()):
+def raw_sources(db, max_shop_rank=None, have=(), fallback=False, exclude=(), ex=((), ())):
     """
     item_id -> {"gold", "unavailable", "anytime", "provided", "shops", "spots"}
     gold: cheapest price (0 if gatherable or provided). unavailable: only sold
@@ -82,21 +82,34 @@ def raw_sources(db, max_shop_rank=None, have=(), fallback=False, exclude=()):
     rank limit, else "missing" (drop, quest, trade). Their "weight" (2^(rank/4),
     x2 for missing) is minimised first, so the route needs as few and as
     low-rank of them as possible. exclude: items never treated that way (the target).
+
+    ex = (excluded locations, excluded item ids): maps the player can't visit
+    (e.g. closed for maintenance) and items they can't get. Nothing is bought
+    or gathered there, and excluded items are never a raw material.
     """
+    banned_locs, banned_items = set(ex[0]), set(ex[1])
     src = defaultdict(lambda: {"shops": [], "spots": [], "provided": False, "note": "", "source": "",
                                "fallback": None, "weight": 0})
     for iid in have:
-        src[iid]["provided"] = True
+        if iid not in banned_items:
+            src[iid]["provided"] = True
     for iid, x in db.get("self_supplied", {}).items():  # from knowledge/shortcuts.json
+        if iid in banned_items:
+            continue
         src[iid]["provided"] = True
         src[iid]["note"], src[iid]["source"] = x["note"], x["source"]
     for s in db["shops"]:
+        if s["location"] in banned_locs or s["item_id"] in banned_items:
+            continue
         if s["item_id"] and (max_shop_rank is None or (s["rank"] or 0) <= max_shop_rank
                              or s.get("always_buy")):
             src[s["item_id"]]["shops"].append(s)
     for c in db["collections"]:
+        if c["location"] in banned_locs:
+            continue
         for i in c["items"]:
-            src[i["id"]]["spots"].append(c)
+            if i["id"] not in banned_items:
+                src[i["id"]]["spots"].append(c)
     for v in src.values():
         v["shops"].sort(key=lambda s: (s["location"] in UNAVAILABLE_SHOPS, s["price"] or 0))
         v["anytime"] = bool(v["spots"]) or v["provided"]
@@ -104,10 +117,11 @@ def raw_sources(db, max_shop_rank=None, have=(), fallback=False, exclude=()):
         v["gold"] = 0 if v["anytime"] else (v["shops"][0]["price"] or 0)
     if fallback:
         for iid, it in db["items"].items():
-            if iid in src or iid in exclude:
+            if iid in src or iid in exclude or iid in banned_items:
                 continue
             shops = sorted((sh for sh in db["shops"] if sh["item_id"] == iid
-                            and sh["location"] not in UNAVAILABLE_SHOPS), key=lambda sh: sh["price"] or 0)
+                            and sh["location"] not in UNAVAILABLE_SHOPS
+                            and sh["location"] not in banned_locs), key=lambda sh: sh["price"] or 0)
             # grows steeply with rank: many low-rank pieces beat one high-rank finished item
             weight = round(2 ** ((it["rank"] or 50) / 4))
             src[iid] = {"shops": shops, "spots": [], "provided": False, "note": "", "anytime": True,
@@ -133,16 +147,24 @@ class Solver:
     steps, books, gold).
     """
 
-    def __init__(self, db, raw, buy_stages=2):
+    def __init__(self, db, raw, buy_stages=2, banned_items=()):
         self.items, self.raw = db["items"], raw
         self.K = max(1, buy_stages)
-        # an item made by one of the player's shortcut recipes is only made that way
-        pinned = {f["result_id"] for f in db["compounds"] if f.get("user")}
-        self.formulas = [f for f in db["compounds"] if recommendable(f, self.items)
-                         and (f.get("user") or f["result_id"] not in pinned)]
-        self.by_id = {f["id"]: f for f in self.formulas}
-        self._levels()
-        self._any()
+        banned = set(banned_items)  # excluded items: never made, never used as a material
+        usable = [f for f in db["compounds"] if recommendable(f, self.items)
+                  and f["result_id"] not in banned and not any(m["id"] in banned for m in f["materials"])]
+        # an item made by one of the player's shortcut recipes is only made that way ...
+        pinned = {f["result_id"] for f in usable if f.get("user")}
+        for _ in range(2):
+            self.formulas = [f for f in usable if f.get("user") or f["result_id"] not in pinned]
+            self.by_id = {f["id"]: f for f in self.formulas}
+            self._levels()
+            self._any()
+            # ... unless exclusions broke that shortcut: then wlohub's recipes may make it
+            broken = {r for r in pinned if r not in self.A and r not in self.L[-1]}
+            if not broken:
+                break
+            pinned -= broken
 
     @staticmethod
     def step_cost(f):
@@ -321,7 +343,8 @@ class GuideBuilder:
     The web app renders it directly; render_markdown() turns it into Markdown.
     """
 
-    def __init__(self, db, raw, solver, max_shop_rank, rebuild=None, have=()):
+    def __init__(self, db, raw, solver, max_shop_rank, rebuild=None, have=(), ex=((), ())):
+        self.ex = ex
         self.db, self.items = db, db["items"]
         self.raw, self.solver, self.max_shop_rank = raw, solver, max_shop_rank
         self.rebuild, self.have = rebuild, list(have)  # rebuild(extra_have_ids) -> Solver
@@ -372,7 +395,9 @@ class GuideBuilder:
         items, solver = self.items, self.solver
         g = {"target": self.ref(tid),
              "settings": {"max_shop_rank": self.max_shop_rank, "buy_stages": solver.K,
-                          "have": [self.ref(i) for i in self.have]},
+                          "have": [self.ref(i) for i in self.have],
+                          "exclude_locations": list(self.ex[0]),
+                          "exclude_items": [self.ref(i) for i in self.ex[1] if i in items]},
              "direct": None, "route": None, "no_route": None}
         direct = [f for f in self.db["compounds"] if f["result_id"] == tid]
 
@@ -641,7 +666,7 @@ class GuideBuilder:
                     place += f" (X {src['x']}, Y {src['y']})"
                 if src["kind"] == "gather" and src.get("via"):
                     place += f", via {src['via']}"
-                groups[key] = {"kind": kind, "place": place, "items": [],
+                groups[key] = {"kind": kind, "place": place, "items": [], "location": src.get("location", ""),
                                "source": src.get("source", ""),
                                "note": src.get("note", "")}
             price = src.get("price") if src["kind"] in ("buy", "over_limit") else None
@@ -780,8 +805,8 @@ class GuideBuilder:
     def minimal_set(self, tid):
         """Smallest set (greedy) of out-of-rules shop items that makes a route possible."""
         pool = sorted({sh["item_id"] for sh in self.db["shops"]
-                       if sh["item_id"] and (sh["item_id"] not in self.raw
-                                             or self.raw[sh["item_id"]]["unavailable"])})
+                       if sh["item_id"] and sh["location"] not in self.ex[0] and sh["item_id"] not in self.ex[1]
+                       and (sh["item_id"] not in self.raw or self.raw[sh["item_id"]]["unavailable"])})
         trial = self.rebuild(pool)
         if trial.best(tid) is None:
             return []
@@ -834,6 +859,10 @@ def render_markdown(g):
     if st["have"]:
         w("")
         w("Items you said you can provide: " + ", ".join(h["name"] for h in st["have"]))
+    if st.get("exclude_locations") or st.get("exclude_items"):
+        w("")
+        w("Excluded (not used anywhere in this route): " + ", ".join(
+            [f"map {l}" for l in st["exclude_locations"]] + [f"item {i['name']}" for i in st["exclude_items"]]))
     w("")
     w("---")
     w("# Tier 1 – Recommended route (shop & gathered materials)")
@@ -1071,78 +1100,89 @@ class Engine:
         self._guides = LRU(max_guides)
         self._unlocks = LRU(max_guides)
 
-    def solver(self, max_shop_rank=14, buy_stages=2, have=(), partial_for=None):
-        key = (max_shop_rank, buy_stages, tuple(sorted(set(have))), partial_for)
+    @staticmethod
+    def _ex(ex):
+        """Normalise exclusions to (sorted location names, sorted item ids)."""
+        locs, its = ex or ((), ())
+        return tuple(sorted({l for l in locs if l})), tuple(sorted({int(i) for i in its}))
+
+    def solver(self, max_shop_rank=14, buy_stages=2, have=(), partial_for=None, ex=((), ())):
+        ex = self._ex(ex)
+        key = (max_shop_rank, buy_stages, tuple(sorted(set(have))), partial_for, ex)
         hit = self._solvers.get(key)
         if hit is None:
             raw = raw_sources(self.db, max_shop_rank, key[2], fallback=partial_for is not None,
-                              exclude=(partial_for,))
-            hit = self._solvers.put(key, (raw, Solver(self.db, raw, buy_stages)))
+                              exclude=(partial_for,), ex=ex)
+            hit = self._solvers.put(key, (raw, Solver(self.db, raw, buy_stages, banned_items=ex[1])))
         return hit
 
-    def _builder(self, max_shop_rank, buy_stages, have):
-        raw, solver = self.solver(max_shop_rank, buy_stages, have)
+    def _builder(self, max_shop_rank, buy_stages, have, ex=((), ())):
+        raw, solver = self.solver(max_shop_rank, buy_stages, have, ex=ex)
 
         def rebuild(extra):
-            return self.solver(max_shop_rank, buy_stages, list(have) + list(extra))[1]
+            return self.solver(max_shop_rank, buy_stages, list(have) + list(extra), ex=ex)[1]
 
-        return GuideBuilder(self.db, raw, solver, max_shop_rank, rebuild, have)
+        return GuideBuilder(self.db, raw, solver, max_shop_rank, rebuild, have, self._ex(ex))
 
     def _have(self, have):
         return [h for h in dict.fromkeys(have) if h in self.db["items"]]
 
     def guide(self, tid, max_shop_rank=14, buy_stages=2, have=(), show_all=False, unlock=True,
-              final=None):
+              final=None, ex=((), ())):
         """
         unlock=False skips the slow "which items would unlock a route" search (see unlock()).
         final: id of one of the "other possible final steps" to build the route around.
+        ex: (excluded locations, excluded item ids) – maps / items to avoid completely.
         """
         have = self._have(have)
-        key = (tid, max_shop_rank, buy_stages, tuple(have), show_all, unlock)
+        ex = self._ex(ex)
+        key = (tid, max_shop_rank, buy_stages, tuple(have), show_all, unlock, ex)
         hit = self._guides.get(key)
         if hit is None:
-            g = self._builder(max_shop_rank, buy_stages, have).build(tid, show_all, unlock)
+            g = self._builder(max_shop_rank, buy_stages, have, ex).build(tid, show_all, unlock)
             if g["no_route"] is not None:
-                g["route"] = self.partial_route(tid, max_shop_rank, buy_stages, have)
+                g["route"] = self.partial_route(tid, max_shop_rank, buy_stages, have, ex)
             hit = self._guides.put(key, g)
         if final in (None, "") or not hit["route"]:
             return hit
         fkey = key + (str(final),)
         alt = self._guides.get(fkey)
         if alt is None:
-            alt = self._guides.put(fkey, self.with_final(hit, tid, max_shop_rank, buy_stages, have, str(final)))
+            alt = self._guides.put(fkey, self.with_final(hit, tid, max_shop_rank, buy_stages, have, str(final), ex))
         return alt
 
-    def with_final(self, g, tid, max_shop_rank, buy_stages, have, final):
+    def with_final(self, g, tid, max_shop_rank, buy_stages, have, final, ex=((), ())):
         """Copy of guide g whose route ends with the chosen final formula."""
         f = next((f for f in self.db["compounds"]
                   if str(f["id"]) == final and f["result_id"] == tid and recommendable(f, self.db["items"])), None)
         partial = g["no_route"] is not None
-        raw, solver = self.solver(max_shop_rank, buy_stages, have, partial_for=tid if partial else None)
-        if f is None or solver.formula_cost(f) is None:
+        raw, solver = self.solver(max_shop_rank, buy_stages, have, partial_for=tid if partial else None, ex=ex)
+        if f is None or f not in solver.formulas or solver.formula_cost(f) is None:
             return dict(g, final_error="That final step can't be built with your current settings.")
         direct = [x for x in self.db["compounds"] if x["result_id"] == tid]
-        route = GuideBuilder(self.db, raw, solver, max_shop_rank, None, have).route(tid, direct, final=f)
+        route = GuideBuilder(self.db, raw, solver, max_shop_rank, None, have, self._ex(ex)).route(
+            tid, direct, final=f)
         return dict(g, route=route)
 
-    def partial_route(self, tid, max_shop_rank, buy_stages, have):
+    def partial_route(self, tid, max_shop_rank, buy_stages, have, ex=((), ())):
         """
         Best route when no full one exists: everything else from shops / gathering,
         plus as few (and as low-rank) items as possible that you must get elsewhere.
         """
-        raw, solver = self.solver(max_shop_rank, buy_stages, have, partial_for=tid)
+        raw, solver = self.solver(max_shop_rank, buy_stages, have, partial_for=tid, ex=ex)
         if solver.best(tid) is None:
             return None
         direct = [f for f in self.db["compounds"] if f["result_id"] == tid]
-        return GuideBuilder(self.db, raw, solver, max_shop_rank, None, have).route(tid, direct)
+        return GuideBuilder(self.db, raw, solver, max_shop_rank, None, have, self._ex(ex)).route(tid, direct)
 
-    def unlock(self, tid, max_shop_rank=14, buy_stages=2, have=()):
+    def unlock(self, tid, max_shop_rank=14, buy_stages=2, have=(), ex=((), ())):
         """The slow part of a no-route guide: items that would unlock a route."""
         have = self._have(have)
-        key = (tid, max_shop_rank, buy_stages, tuple(have))
+        ex = self._ex(ex)
+        key = (tid, max_shop_rank, buy_stages, tuple(have), ex)
         hit = self._unlocks.get(key)
         if hit is None:
-            hit = self._unlocks.put(key, self._builder(max_shop_rank, buy_stages, have)
+            hit = self._unlocks.put(key, self._builder(max_shop_rank, buy_stages, have, ex)
                                     .explain_no_route(tid, True))
         return hit
 
@@ -1181,6 +1221,10 @@ def main():
     ap.add_argument("--buy-stages", type=int, default=2,
                     help="bought items may only be used in Stage 1..N (default: 2)")
     ap.add_argument("--final", help="formula id of an 'other possible final step' to build the route around")
+    ap.add_argument("--exclude-location", action="append", default=[], metavar="MAP",
+                    help="map/shop location to avoid (e.g. closed for maintenance); repeat for several")
+    ap.add_argument("--exclude-item", action="append", default=[], metavar="ITEM",
+                    help="item that is unavailable (name or id); repeat for several")
     ap.add_argument("--out", default="guides", help="folder for the Markdown guide (default: guides)")
     ap.add_argument("--stdout", action="store_true", help="print the guide instead of saving it")
     args = ap.parse_args()
@@ -1208,7 +1252,15 @@ def main():
                      "ambiguous, use the id: " + ", ".join(f"{r['id']} {r['name']}" for r in hits[:10])))
         have.append(hits[0]["id"])
 
-    g = engine.guide(tid, args.max_shop_rank, args.buy_stages, have, args.all, final=args.final)
+    xitems = []
+    for h in args.exclude_item:
+        key = h.lstrip("#")
+        hits = find_items(db, "", int(key)) if key.isdigit() else find_items(db, h, None)
+        if len(hits) != 1:
+            sys.exit(f"--exclude-item {h!r}: " + ("no such item" if not hits else "ambiguous, use the id"))
+        xitems.append(hits[0]["id"])
+    g = engine.guide(tid, args.max_shop_rank, args.buy_stages, have, args.all, final=args.final,
+                     ex=(args.exclude_location, xitems))
     if g.get("final_error"):
         print(f"--final {args.final}: {g['final_error']} Showing the recommended route.")
     text = render_markdown(g)

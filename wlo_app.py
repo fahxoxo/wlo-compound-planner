@@ -58,9 +58,13 @@ def guide_args(q):
         except ValueError:
             return default
     have = [int(x) for x in q.get("have", [""])[0].split(",") if x.strip().isdigit()]
+    # exclusions: maps separated by "|", item ids by ","
+    xloc = [x for x in q.get("xloc", [""])[0].split("|") if x.strip()]
+    xitem = [int(x) for x in q.get("xitem", [""])[0].split(",") if x.strip().isdigit()]
     return dict(tid=num("id", 0), max_shop_rank=num("max_shop_rank", 14),
                 buy_stages=max(1, num("buy_stages", 2)), have=have,
-                show_all=q.get("all", ["0"])[0] == "1", final=q.get("final", [""])[0] or None)
+                show_all=q.get("all", ["0"])[0] == "1", final=q.get("final", [""])[0] or None,
+                ex=(xloc, xitem))
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -84,6 +88,10 @@ class Handler(BaseHTTPRequestHandler):
             if u.path in ("/", "/index.html"):
                 page = (WEB / "index.html").read_text(encoding="utf-8").replace("__APP_VERSION__", VERSION)
                 return self.send(200, page, "text/html; charset=utf-8")
+            if u.path == "/api/locations":  # every map that has a shop or gathering spot
+                locs = sorted({s["location"] for s in ENGINE.db["shops"]} |
+                              {c["location"] for c in ENGINE.db["collections"]})
+                return self.json(locs)
             if u.path == "/api/info":
                 meta_path = ROOT / "data" / "meta.json"
                 meta = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.exists() else {}
@@ -100,7 +108,7 @@ class Handler(BaseHTTPRequestHandler):
                 # the web page loads the slow "unlock" part separately (/api/unlock)
                 g = ENGINE.guide(a["tid"], a["max_shop_rank"], a["buy_stages"],
                                  a["have"], a["show_all"], unlock=u.path == "/api/guide.md",
-                                 final=a["final"])
+                                 final=a["final"], ex=a["ex"])
                 if u.path == "/api/guide":
                     return self.json(g)
                 name = "".join(c if c.isalnum() else "_" for c in g["target"]["name"]).strip("_")
@@ -111,7 +119,8 @@ class Handler(BaseHTTPRequestHandler):
                 a = guide_args(q)
                 if a["tid"] not in ENGINE.db["items"]:
                     return self.json({"error": "Unknown item"}, 404)
-                return self.json(ENGINE.unlock(a["tid"], a["max_shop_rank"], a["buy_stages"], a["have"]))
+                return self.json(ENGINE.unlock(a["tid"], a["max_shop_rank"], a["buy_stages"], a["have"],
+                                               a["ex"]))
             self.json({"error": "Not found"}, 404)
         except Exception as e:  # report instead of dropping the connection
             self.json({"error": f"{type(e).__name__}: {e}"}, 500)
