@@ -586,8 +586,8 @@ function progressBar(r) {
 
 function timeline(r) {
   let h = `<section class="card" id="timeline"><h2>Your step-by-step timeline</h2>
-    <p class="lead">Start with the <b>🛒 shopping trip</b>: visit each place once and collect everything listed – the totals cover the
-    whole route, and each item shows the steps that use it. Then follow the compound steps in order. In each compound the items are listed in slot order –
+    <p class="lead">Each map is visited once. Right after buying there, do the compound steps marked <b>📍 at that map</b> on the spot,
+    before leaving – if a compound fails you can buy replacements immediately. Each item shows the steps that use it. In each compound the items are listed in slot order –
     the first one goes into <b>Slot 1 (Primary)</b>. Each compound makes 1 item, so <i>“repeat until you have N pieces”</i>
     means doing the same compound N times. Tick <b>Done</b> as you go.</p>`;
   if (r.selected_final)
@@ -651,7 +651,8 @@ function stepCard(s) {
   if (f.inferred === "duplicated_single_material") notes.push("wlohub lists only 1 material; assumed 2× the same material");
   return `<div class="tl-step ${s.acquire.length ? "buys" : ""} ${s.is_target ? "target" : ""}" id="step-${s.no}">
     <div class="tl-dot">${s.is_target ? "🎯" : s.acquire.length ? "🛒" : "⚗"}</div>
-    <div class="step-head"><span class="step-no">Step ${s.no}</span>${label(f)}${doneBox(s.no)}</div>
+    <div class="step-head"><span class="step-no">Step ${s.no}</span>${label(f)}
+      ${s.at ? `<span class="badge info" title="Do this before leaving the map">📍 at ${esc(s.at)}</span>` : ""}${doneBox(s.no)}</div>
     <p class="sentence">${sentence(s.instruction)}</p>
     <details class="slots"><summary>Slot table</summary>
     <div class="table-wrap"><table><thead><tr><th>Slot</th><th></th><th>Put in</th><th>Rank</th><th>Base</th><th>Comes from</th></tr></thead>
