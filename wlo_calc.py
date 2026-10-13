@@ -99,6 +99,7 @@ def raw_sources(db, max_shop_rank=None, have=(), fallback=False, exclude=(), ex=
             continue
         src[iid]["provided"] = True
         src[iid]["note"], src[iid]["source"] = x["note"], x["source"]
+        src[iid]["effort"] = x.get("effort", 1)
     for s in db["shops"]:
         if s["location"] in banned_locs or s["item_id"] in banned_items:
             continue
@@ -179,7 +180,9 @@ class Solver:
         return (0, 0, 0 if f["verified"] else 1, 1, 1 if f["book"] else 0, 0)
 
     def _levels(self):
-        base = {i: (s.get("weight", 0), 1 if s["unavailable"] else 0, 0, 0, 0, s["gold"])
+        # an item you made yourself beforehand counts like one (uncertain) compound per piece
+        base = {i: (s.get("weight", 0), 1 if s["unavailable"] else 0, s.get("effort", 0), s.get("effort", 0), 0,
+                    s["gold"])
                 for i, s in self.raw.items()}
         self.L, self.Lchoice = [base], [{i: None for i in base}]
         for _ in range(1, self.K):
@@ -206,7 +209,7 @@ class Solver:
 
         for i, s in self.raw.items():
             if s["anytime"]:
-                offer(i, (s.get("weight", 0), 0, 0, 0, 0, 0), ("gather", None))
+                offer(i, (s.get("weight", 0), 0, s.get("effort", 0), s.get("effort", 0), 0, 0), ("gather", None))
         for f in self.formulas:  # last stage that may still use purchases
             if all(m["id"] in low for m in f["materials"]):
                 offer(f["result_id"], add(self.step_cost(f), *(low[m["id"]] for m in f["materials"])),

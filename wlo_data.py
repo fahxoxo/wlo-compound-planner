@@ -129,7 +129,10 @@ def apply_knowledge(db, path=KNOWLEDGE):
                                               substituted={"item": items[sid]["name"], "note": sub.get("note", ""),
                                                            "original": f["id"]}), items))
         db["compounds"].extend(extra)
-    db["self_supplied"] = {_resolve(items, x["item"]): {"note": x.get("note", ""), "source": x.get("source", "")}
+    # "effort": how many compound actions one piece is worth to you (default 1), so the
+    # planner does not use dozens of items you had to make yourself
+    db["self_supplied"] = {_resolve(items, x["item"]): {"note": x.get("note", ""), "source": x.get("source", ""),
+                                                        "effort": x.get("effort", 1)}
                            for x in k.get("self_supplied", [])}
     for n, r in enumerate(k.get("recipes", []), 1):
         rid = _resolve(items, r["result"])

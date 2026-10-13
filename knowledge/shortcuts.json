@@ -28,8 +28,10 @@
   ],
 
   "self_supplied": [
-    {"item": "Salmon Roes", "note": "Not sold or gathered anywhere in the wlohub data – get it the way you normally do"},
+    {"item": "Salmon Roes", "effort": 0, "note": "Not sold or gathered anywhere in the wlohub data – get it the way you normally do"},
     {"item": "Demon Jade Stone", "source": "from your own inventory",
-     "note": "Magic R21 – your source for Magic-type materials"}
+     "note": "Magic R21 – your source for Magic-type materials"},
+    {"item": "Wolf Tooth", "source": "from your own inventory",
+     "note": "You make it by compounding beforehand"}
   ]
 }
