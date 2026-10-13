@@ -30,6 +30,8 @@ def normalize_compound(formula, items):
 
 MAX_SLOTS = 5
 MAX_SAFE_RANK_SPREAD = 2
+# highest result rank = Slot 1 (primary) rank + this, by Alchemy Book (None = no book)
+BOOK_BONUS = {None: 4, 1: 5, 2: 6, 3: 7, 4: 8}
 
 
 def assess_compound(f, items):
@@ -40,12 +42,22 @@ def assess_compound(f, items):
       (highest rank - lowest rank) <= MAX_SAFE_RANK_SPREAD. Wider spreads are
       "risky": shown only in a separate warning section (high failure risk).
 
-    Sets f["category"] to "invalid", "risky" or "safe".
+    - The result can be at most Slot 1 rank + BOOK_BONUS[book]; formulas above
+      that cap are "invalid" (75 of wlohub's 76 verified formulas obey it; the
+      ones that don't are almost certainly wrong community data). The player's
+      own shortcut recipes are trusted as given.
+
+    Sets f["category"] to "invalid", "risky" or "safe" ("over_cap": True if capped out).
     """
     ranks = [items[m["id"]]["rank"] for m in f["materials"]
              if m["id"] in items and items[m["id"]]["rank"] is not None]
     f["rank_spread"] = max(ranks) - min(ranks) if ranks else None
-    if not 2 <= len(f["materials"]) <= MAX_SLOTS or len(ranks) != len(f["materials"]):
+    res_rank = (items.get(f["result_id"]) or {}).get("rank")
+    first = items.get(f["materials"][0]["id"]) if f["materials"] else None
+    f["over_cap"] = bool(res_rank is not None and first and first["rank"] is not None
+                         and res_rank > first["rank"] + BOOK_BONUS.get(f.get("book"), 4)
+                         and not f.get("user"))
+    if not 2 <= len(f["materials"]) <= MAX_SLOTS or len(ranks) != len(f["materials"]) or f["over_cap"]:
         f["category"] = "invalid"
     elif f["rank_spread"] > MAX_SAFE_RANK_SPREAD:
         f["category"] = "risky"

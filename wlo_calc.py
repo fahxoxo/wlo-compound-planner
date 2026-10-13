@@ -126,7 +126,10 @@ def raw_sources(db, max_shop_rank=None, have=(), fallback=False, exclude=(), ex=
                             and sh["location"] not in banned_locs), key=lambda sh: sh["price"] or 0)
             # grows steeply with rank: many low-rank pieces beat one high-rank finished item
             weight = round(2 ** ((it["rank"] or 50) / 4))
-            src[iid] = {"shops": shops, "spots": [], "provided": False, "note": "", "anytime": True,
+            # items bought above your limit still follow the Stage 1-2 rule; only
+            # items you must get elsewhere (drops etc.) may be used at any stage
+            src[iid] = {"shops": shops, "spots": [], "provided": False, "note": "",
+                        "anytime": not shops,
                         "unavailable": False, "gold": 0,
                         "fallback": "over_limit" if shops else "missing",
                         # buying above your limit is easy; finding a drop is hard
