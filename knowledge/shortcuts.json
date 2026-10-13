@@ -2,7 +2,7 @@
   "_about": "Your own tested shortcut routes. These recipes count as CONFIRMED and are always used to make their result item (they replace wlohub's formulas for that item). Items are written by name; add an \"id\" if a name is ambiguous. Slot order matters: the first material goes into Slot 1 (Primary).",
 
   "recipes": [
-    {"result": "Wit's Hat",          "materials": ["Warm Clothes", "Ox Horn Hat"],          "book": null, "note": "Flower R18 – buy both at South Pole"},
+    {"result": "Wit's Hat",          "materials": ["Warm Clothes", "Ox Horn Hat"],          "book": 2,    "note": "Flower R18 – buy both at South Pole"},
     {"result": "Wizard Cap",         "materials": ["Green Headdress", "Hunting Boots"],     "book": 3,    "note": "Grass R16 – Bangkok + Oslya (Australia)"},
     {"result": "Blue Boots",         "materials": ["Wizard Cap", "Leather Armor"],          "book": 2,    "note": "Grass R21 – Leather Armor from Easter Island"},
     {"result": "Gold Block",         "materials": ["Jewel Necklace", "Jewel Necklace"],     "book": 2,    "note": "Gold R13 – Jewel Necklace from Calcutta"},

@@ -113,8 +113,11 @@ def raw_sources(db, max_shop_rank=None, have=(), fallback=False, exclude=(), ex=
                 src[i["id"]]["spots"].append(c)
     for v in src.values():
         v["shops"].sort(key=lambda s: (s["location"] in UNAVAILABLE_SHOPS, s["price"] or 0))
-        # gathered / your own items, and shop items your knowledge file allows at any stage
-        v["anytime"] = bool(v["spots"]) or v["provided"] or any(s.get("any_stage") for s in v["shops"])
+        # usable at any stage: gathered / your own items, and shop items above the
+        # rank limit (allowed by your knowledge file); normal purchases: Stage 1-2 only
+        v["anytime"] = bool(v["spots"]) or v["provided"] or any(
+            s.get("any_stage") or (max_shop_rank is not None and (s["rank"] or 0) > max_shop_rank)
+            for s in v["shops"])
         v["unavailable"] = not v["anytime"] and v["shops"][0]["location"] in UNAVAILABLE_SHOPS
         v["gold"] = 0 if v["anytime"] else (v["shops"][0]["price"] or 0)
     if fallback:
@@ -126,10 +129,9 @@ def raw_sources(db, max_shop_rank=None, have=(), fallback=False, exclude=(), ex=
                             and sh["location"] not in banned_locs), key=lambda sh: sh["price"] or 0)
             # grows steeply with rank: many low-rank pieces beat one high-rank finished item
             weight = round(2 ** ((it["rank"] or 50) / 4))
-            # items bought above your limit still follow the Stage 1-2 rule; only
-            # items you must get elsewhere (drops etc.) may be used at any stage
+            # usable at any stage: above-limit purchases (your choice) and drops
             src[iid] = {"shops": shops, "spots": [], "provided": False, "note": "",
-                        "anytime": not shops,
+                        "anytime": True,
                         "unavailable": False, "gold": 0,
                         "fallback": "over_limit" if shops else "missing",
                         # buying above your limit is easy; finding a drop is hard
@@ -961,7 +963,8 @@ def render_markdown(g):
         w("")
         w(f"Buy only shop items up to **Rank {st['max_shop_rank']}**, and use bought items only in "
           f"**Stage 1–{st['buy_stages']}**. From Stage {st['buy_stages'] + 1} on, every step uses "
-          "items you crafted (or gathered) earlier.")
+          "items you crafted (or gathered) earlier – except the few special items bought above the "
+          "rank limit (e.g. Leather Armor, Ninja Suit), which can be used at any stage.")
         w("")
         if s["hawaii"]:
             w(f"> ⛔ **No route avoids Hawaii.** {s['hawaii']} material(s) below are only sold in "

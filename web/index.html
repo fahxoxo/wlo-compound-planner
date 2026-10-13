@@ -520,7 +520,8 @@ function routeHead(g) {
     <div class="tile"><div class="v">${s.materials_total}</div><div class="k">materials (${s.materials_distinct} kinds)</div></div>
   </div>
   <div class="note info">Buy only shop items up to <b>Rank ${st.max_shop_rank}</b> and use them only in
-    <b>Stage 1–${st.buy_stages}</b>. From Stage ${st.buy_stages + 1} on, every step uses items you crafted (or gathered) earlier.</div>`;
+    <b>Stage 1–${st.buy_stages}</b>. From Stage ${st.buy_stages + 1} on, every step uses items you crafted (or gathered) earlier –
+    except the few special items bought above the rank limit (e.g. Leather Armor, Ninja Suit), which can be used at any stage.</div>`;
   if (g.settings.exclude_locations.length || g.settings.exclude_items.length)
     h += `<div class="note info">🚫 This route avoids: ${[...g.settings.exclude_locations.map(l => "🗺 " + esc(l)),
       ...g.settings.exclude_items.map(x => "📦 " + esc(x.name))].join(", ")}</div>`;
