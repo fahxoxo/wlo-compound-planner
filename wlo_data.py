@@ -78,7 +78,9 @@ def apply_knowledge(db, path=KNOWLEDGE):
     - recipes: counted as confirmed ("user": True) and pinned, i.e. the only
       way the calculator makes that result item
     - item_fixes: corrected item data (e.g. a missing base)
-    - shop_fixes: shop items allowed above the shop-rank limit, location labels
+    - shop_fixes: shop items allowed above the shop-rank limit ("always_buy"), usable at
+      any stage instead of only Stage 1-2 ("any_stage"), location labels
+    - substitutes: use one item for any material of the same base & rank
     - self_supplied: items the player gets themselves (own inventory, drops, ...);
       optional "source" text replaces "from your bag" in the guide
     """
@@ -94,8 +96,27 @@ def apply_knowledge(db, path=KNOWLEDGE):
         for s in db["shops"]:
             if s["item_id"] == iid:
                 s["always_buy"] = fx.get("always_buy", False)
+                s["any_stage"] = fx.get("any_stage", False)
                 if fx.get("location_label"):
                     s["location"] = fx["location_label"]
+    # substitutes: a material of the same primary base & rank may be replaced by the
+    # player's preferred item (e.g. Ninja Suit for Nylon R23); adds a copy of each recipe
+    for sub in k.get("substitutes", []):
+        sid = _resolve(items, sub["item"])
+        extra = []
+        for f in db["compounds"]:
+            if (items[f["result_id"]]["rank"] or 0) < sub.get("min_result_rank", 0):
+                continue
+            mats = f["materials"]
+            hit = [i for i, m in enumerate(mats) if m["id"] != sid and items[m["id"]]["bases"]
+                   and items[m["id"]]["bases"][0] == sub["base"] and items[m["id"]]["rank"] == sub["rank"]]
+            if not hit:
+                continue
+            new = [dict(id=sid, name=items[sid]["name"]) if i in hit else m for i, m in enumerate(mats)]
+            extra.append(assess_compound(dict(f, id=f"{f['id']}~{sid}", materials=new,
+                                              substituted={"item": items[sid]["name"], "note": sub.get("note", ""),
+                                                           "original": f["id"]}), items))
+        db["compounds"].extend(extra)
     db["self_supplied"] = {_resolve(items, x["item"]): {"note": x.get("note", ""), "source": x.get("source", "")}
                            for x in k.get("self_supplied", [])}
     for n, r in enumerate(k.get("recipes", []), 1):

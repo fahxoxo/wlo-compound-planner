@@ -648,6 +648,7 @@ function stepCard(s) {
         `<a class="chip" data-step="${x.from_step}">${x.qty}× ${esc(x.item.name)}</a>`).join(" ")}</div>` : "";
   const notes = [`formula #${f.id}`, `rank spread ${f.rank_spread}`, `stage ${s.stage}${s.buy_allowed ? " (shop items allowed)" : ""}`];
   if (s.gold) notes.unshift(`cost of this step ${fmt(s.gold)}g`);
+  if (f.substituted) notes.push(`${f.substituted.item} used as a same-base, same-rank substitute (wlohub formula #${f.substituted.original})`);
   if (f.inferred === "duplicated_single_material") notes.push("wlohub lists only 1 material; assumed 2× the same material");
   return `<div class="tl-step ${s.acquire.length ? "buys" : ""} ${s.is_target ? "target" : ""}" id="step-${s.no}">
     <div class="tl-dot">${s.is_target ? "🎯" : s.acquire.length ? "🛒" : "⚗"}</div>

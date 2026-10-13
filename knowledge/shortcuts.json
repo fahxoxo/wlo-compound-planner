@@ -17,7 +17,14 @@
 
   "shop_fixes": [
     {"item": "Leather Armor", "always_buy": true, "location_label": "Revival Isle (Easter Island)",
-     "note": "R16 – above the normal shop-rank limit, allowed because your shortcut uses it"}
+     "note": "R16 – above the normal shop-rank limit, allowed because your shortcut uses it"},
+    {"item": "Ninja Suit", "always_buy": true, "any_stage": true,
+     "note": "Nylon R23 from Kyoto – your source for Nylon-type materials when crafting above Rank 23"}
+  ],
+
+  "substitutes": [
+    {"item": "Ninja Suit", "base": "Nylon", "rank": 23, "min_result_rank": 24,
+     "note": "In recipes above Rank 23, any Nylon R23 material can be the Ninja Suit from Kyoto (same base & rank)"}
   ],
 
   "self_supplied": [

@@ -81,7 +81,8 @@ def raw_sources(db, max_shop_rank=None, have=(), fallback=False, exclude=(), ex=
     you must get elsewhere – "over_limit" if a normal shop sells it above your
     rank limit, else "missing" (drop, quest, trade). Their "weight" (2^(rank/4),
     x2 for missing) is minimised first, so the route needs as few and as
-    low-rank of them as possible. exclude: items never treated that way (the target).
+    low-rank of them as possible (above-limit purchases count 1/8 of a missing
+    item). exclude: items never treated that way (the target).
 
     ex = (excluded locations, excluded item ids): maps the player can't visit
     (e.g. closed for maintenance) and items they can't get. Nothing is bought
@@ -112,7 +113,8 @@ def raw_sources(db, max_shop_rank=None, have=(), fallback=False, exclude=(), ex=
                 src[i["id"]]["spots"].append(c)
     for v in src.values():
         v["shops"].sort(key=lambda s: (s["location"] in UNAVAILABLE_SHOPS, s["price"] or 0))
-        v["anytime"] = bool(v["spots"]) or v["provided"]
+        # gathered / your own items, and shop items your knowledge file allows at any stage
+        v["anytime"] = bool(v["spots"]) or v["provided"] or any(s.get("any_stage") for s in v["shops"])
         v["unavailable"] = not v["anytime"] and v["shops"][0]["location"] in UNAVAILABLE_SHOPS
         v["gold"] = 0 if v["anytime"] else (v["shops"][0]["price"] or 0)
     if fallback:
@@ -127,7 +129,8 @@ def raw_sources(db, max_shop_rank=None, have=(), fallback=False, exclude=(), ex=
             src[iid] = {"shops": shops, "spots": [], "provided": False, "note": "", "anytime": True,
                         "unavailable": False, "gold": 0,
                         "fallback": "over_limit" if shops else "missing",
-                        "weight": weight if shops else weight * 2}
+                        # buying above your limit is easy; finding a drop is hard
+                        "weight": max(1, weight // 4) if shops else weight * 2}
     return dict(src)
 
 
@@ -366,7 +369,8 @@ class GuideBuilder:
                 "book": f["book"], "result": self.ref(f["result_id"]),
                 "verified": f["verified"], "verified_by": f["verified_by"],
                 "rank_spread": f["rank_spread"], "inferred": f.get("inferred"),
-                "user": bool(f.get("user")), "note": f.get("note", "")}
+                "user": bool(f.get("user")), "note": f.get("note", ""),
+                "substituted": f.get("substituted")}
 
     def source(self, iid):
         s = self.raw[iid]
@@ -1014,6 +1018,9 @@ def render_markdown(g):
                      f"stage {stp['stage']}" + (" – shop items allowed" if stp["buy_allowed"] else "")]
             if f["inferred"] == "duplicated_single_material":
                 notes.append("wlohub lists only 1 material; assumed 2× the same material")
+            if f.get("substituted"):
+                notes.append(f"{f['substituted']['item']} used as a same-base, same-rank substitute "
+                             f"(wlohub formula #{f['substituted']['original']})")
             w(f"- _{' · '.join(notes)}_")
             w("- [ ] Done")
         w("")
