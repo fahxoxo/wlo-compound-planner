@@ -103,12 +103,16 @@ def apply_knowledge(db, path=KNOWLEDGE):
     for fx in k.get("item_fixes", []):
         iid = _resolve(items, fx["item"])
         items[iid] = dict(items[iid], **{key: v for key, v in fx.items() if key not in ("item", "note")})
+    if k.get("item_fixes"):  # corrected ranks / bases change the rank checks of wlohub's formulas
+        db["compounds"] = [assess_compound(f, items) for f in db["compounds"]]
     for fx in k.get("shop_fixes", []):
         iid = _resolve(items, fx["item"])
         for s in db["shops"]:
             if s["item_id"] == iid:
                 s["always_buy"] = fx.get("always_buy", False)
                 s["any_stage"] = fx.get("any_stage", False)
+                if "rank" in fx:  # corrected shop rank (e.g. wlohub lists the wrong one)
+                    s["rank"] = fx["rank"]
                 if fx.get("location_label"):
                     s["location"] = fx["location_label"]
     # substitutes: a material of the same primary base & rank may be replaced by the

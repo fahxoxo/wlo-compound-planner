@@ -12,19 +12,20 @@
   ],
 
   "item_fixes": [
-    {"item": "Wit's Hat", "bases": ["Flower"], "note": "wlohub lists no base for this item"}
+    {"item": "Wit's Hat", "bases": ["Flower"], "note": "wlohub lists no base for this item"},
+    {"item": "Ninja Suit", "rank": 14, "note": "Nylon R14 in game (wlohub says R23)"}
   ],
 
   "shop_fixes": [
     {"item": "Leather Armor", "always_buy": true, "location_label": "Revival Isle (Easter Island)",
      "note": "R16 – above the normal shop-rank limit, allowed because your shortcut uses it"},
-    {"item": "Ninja Suit", "always_buy": true, "any_stage": true,
-     "note": "Nylon R23 from Kyoto – your source for Nylon-type materials when crafting above Rank 23"}
+    {"item": "Ninja Suit", "rank": 14,
+     "note": "Nylon R14 at Kyoto (wlohub lists R23) – your source for Nylon-type materials"}
   ],
 
   "substitutes": [
-    {"item": "Ninja Suit", "base": "Nylon", "rank": 23, "min_result_rank": 24,
-     "note": "In recipes above Rank 23, any Nylon R23 material can be the Ninja Suit from Kyoto (same base & rank)"}
+    {"item": "Ninja Suit", "base": "Nylon", "rank": 14,
+     "note": "Any Nylon R14 material can be the Ninja Suit from Kyoto (same base & rank)"}
   ],
 
   "self_supplied": [
